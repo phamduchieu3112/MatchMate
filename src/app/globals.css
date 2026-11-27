@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100dvh;
+}
+
+.ticket-barcode {
+  background-image: repeating-linear-gradient(
+    90deg,
+    currentColor 0px,
+    currentColor 2px,
+    transparent 2px,
+    transparent 5px,
+    currentColor 5px,
+    currentColor 6px,
+    transparent 6px,
+    transparent 9px,
+    currentColor 9px,
+    currentColor 13px,
+    transparent 13px,
+    transparent 15px
+  );
+}

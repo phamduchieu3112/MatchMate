@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { buildSePayQrUrl } from '@/lib/sepay';
+import { isValidUuid } from '@/lib/validation';
+import type { MyRegistrationPayload } from '@/lib/types';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+  if (!isValidUuid(id)) {
+    return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+  }
+
+  const accessToken = request.cookies.get(`kt_${id}`)?.value;
+  if (!accessToken) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc('get_my_registration', {
+      p_registration_id: id,
+      p_access_token: accessToken,
+    });
+
+    if (error) {
+      return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
+
+    const reg = data as MyRegistrationPayload;
+    const amountRemaining = Math.max(reg.amount_due - reg.net_paid, 0);
+    const qrUrl =
+      reg.status === 'pending_payment' && amountRemaining > 0
+        ? buildSePayQrUrl(amountRemaining, reg.payment_code)
+        : null;
+
+    return NextResponse.json({
+      ...reg,
+      amount_remaining: amountRemaining,
+      qr_url: qrUrl,
+    });
+  } catch {
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+  }
+}
