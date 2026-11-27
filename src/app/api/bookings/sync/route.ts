@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { isValidUuid } from '@/lib/validation';
+import { enforceRateLimits, normalizeIpForRateLimit } from '@/lib/rate-limit';
+import { extractClientIp, isValidUuid } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,18 @@ interface BookingSyncItem {
 }
 
 export async function POST(request: NextRequest) {
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+    const normIp = normalizeIpForRateLimit(extractClientIp(request.headers));
+    const rateLimitRes = await enforceRateLimits(admin, [
+      { key: `bookings_sync:ip:${normIp}`, limit: 30, windowSeconds: 60 },
+    ]);
+    if (rateLimitRes) return rateLimitRes;
+  } catch {
+    return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -51,7 +64,6 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const admin = createAdminClient();
     const matchIds = Array.from(new Set(items.map((i) => i.matchId)));
     const regIds = Array.from(new Set(items.map((i) => i.registrationId)));
 

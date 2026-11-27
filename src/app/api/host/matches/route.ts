@@ -57,16 +57,22 @@ export async function POST(request: NextRequest) {
     !mapCheck.valid ||
     !hasVietnamOffset(body.starts_at) ||
     !hasVietnamOffset(body.lock_at) ||
+    new Date(body.lock_at).getTime() > new Date(body.starts_at).getTime() ||
     !Number.isInteger(feePerSlot) ||
     feePerSlot < 0 ||
+    feePerSlot > 10_000_000 ||
     !Number.isInteger(maxSlots) ||
     maxSlots < 1 ||
+    maxSlots > 200 ||
     !Number.isInteger(courts) ||
     courts < 1 ||
+    courts > 50 ||
     !Number.isInteger(cancelCutoffHours) ||
     cancelCutoffHours < 0 ||
+    cancelCutoffHours > 168 ||
     !Number.isInteger(holdMinutes) ||
-    holdMinutes < 1
+    holdMinutes < 1 ||
+    holdMinutes > 1440
   ) {
     return NextResponse.json({ error: 'invalid_input' }, { status: 400 });
   }

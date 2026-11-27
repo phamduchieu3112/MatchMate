@@ -1,6 +1,10 @@
-import crypto from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import {
+  enforceRateLimits,
+  hashRateLimitKey,
+  normalizeIpForRateLimit,
+} from '@/lib/rate-limit';
 import {
   buildHostPaymentClientBundle,
   resolveMatchHostPayment,
@@ -14,20 +18,6 @@ import {
   sanitizeText,
   validateAndNormalizePhone,
 } from '@/lib/validation';
-
-function normalizeIpForDb(ip: string): string {
-  if (!ip.includes(':')) return ip;
-  // Normalize IPv6 to /64 prefix for request_log storage
-  const parts = ip.split(':');
-  if (parts.length >= 4) {
-    return `${parts.slice(0, 4).join(':')}::/64`;
-  }
-  return ip;
-}
-
-function hashContactKey(last9: string): string {
-  return crypto.createHash('sha256').update(last9).digest('hex').slice(0, 16);
-}
 
 function mapBookError(message: string): { status: number; code: string } {
   const known: Record<string, { status: number; code: string }> = {
@@ -165,43 +155,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Rate limiting via request_log
-    const normIp = normalizeIpForDb(ip);
-    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-    const oneMinAgo = new Date(Date.now() - 60 * 1000).toISOString();
-    const contactAction = `book:${hashContactKey(phone.normalizedLast9)}`;
-
-    const [ip10m, ip1m, contact10m] = await Promise.all([
-      admin
-        .from('request_log')
-        .select('id', { count: 'exact', head: true })
-        .eq('normalized_ip', normIp)
-        .gte('created_at', tenMinAgo),
-      admin
-        .from('request_log')
-        .select('id', { count: 'exact', head: true })
-        .eq('normalized_ip', normIp)
-        .gte('created_at', oneMinAgo),
-      admin
-        .from('request_log')
-        .select('id', { count: 'exact', head: true })
-        .eq('action', contactAction)
-        .gte('created_at', tenMinAgo),
+    // Atomic rate limiting via check_rate_limit RPC
+    const normIp = normalizeIpForRateLimit(ip);
+    const rateLimitRes = await enforceRateLimits(admin, [
+      { key: `book:ip10m:${normIp}`, limit: 20, windowSeconds: 600 },
+      { key: `book:ip1m:${normIp}`, limit: 2, windowSeconds: 60 },
+      {
+        key: `book:contact10m:${hashRateLimitKey(phone.normalizedLast9)}`,
+        limit: 5,
+        windowSeconds: 600,
+      },
     ]);
-
-    if (
-      (ip10m.count ?? 0) >= 20 ||
-      (ip1m.count ?? 0) >= 2 ||
-      (contact10m.count ?? 0) >= 5
-    ) {
-      return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
-    }
-
-    await admin.from('request_log').insert({
-      ip,
-      normalized_ip: normIp,
-      action: contactAction,
-    });
+    if (rateLimitRes) return rateLimitRes;
 
     // Verify requested slots do not exceed the match's configured max_slots
     const { data: matchMeta } = await admin

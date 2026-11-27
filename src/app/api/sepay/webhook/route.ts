@@ -122,7 +122,6 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         result: (data as { result?: string } | null)?.result ?? 'ok',
-        host: matchedHost.email,
       },
       { status: 200 }
     );

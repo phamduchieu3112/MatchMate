@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { isValidUuid, sanitizeText } from '@/lib/validation';
+import { enforceRateLimits, normalizeIpForRateLimit } from '@/lib/rate-limit';
+import {
+  extractClientIp,
+  isValidUuid,
+  sanitizeText,
+  verifyHostOrigin,
+} from '@/lib/validation';
 
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  if (!verifyHostOrigin(request.headers)) {
+    return NextResponse.json({ error: 'invalid_origin' }, { status: 403 });
+  }
+
   const { id } = await context.params;
   if (!isValidUuid(id)) {
     return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
@@ -14,6 +24,18 @@ export async function POST(
   const accessToken = request.cookies.get(`kt_${id}`)?.value;
   if (!accessToken) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+    const normIp = normalizeIpForRateLimit(extractClientIp(request.headers));
+    const rateLimitRes = await enforceRateLimits(admin, [
+      { key: `reg_refund_acc:ip:${normIp}`, limit: 20, windowSeconds: 60 },
+    ]);
+    if (rateLimitRes) return rateLimitRes;
+  } catch {
+    return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
   }
 
   let body: Record<string, unknown>;
@@ -33,7 +55,6 @@ export async function POST(
   }
 
   try {
-    const admin = createAdminClient();
     const { data, error } = await admin.rpc('set_refund_account', {
       p_registration_id: id,
       p_access_token: accessToken,

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { sanitizeText, verifyHostOrigin } from '@/lib/validation';
+import {
+  enforceRateLimits,
+  hashRateLimitKey,
+  normalizeIpForRateLimit,
+} from '@/lib/rate-limit';
+import { extractClientIp, sanitizeText, verifyHostOrigin } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
   if (!verifyHostOrigin(request.headers)) {
@@ -22,6 +28,22 @@ export async function POST(request: NextRequest) {
   const password = typeof body.password === 'string' ? body.password : '';
   if (!email || !password) {
     return NextResponse.json({ error: 'missing_credentials' }, { status: 400 });
+  }
+
+  try {
+    const admin = createAdminClient();
+    const normIp = normalizeIpForRateLimit(extractClientIp(request.headers));
+    const rateLimitRes = await enforceRateLimits(admin, [
+      { key: `login:ip:${normIp}`, limit: 5, windowSeconds: 900 },
+      {
+        key: `login:ip_email:${normIp}:${hashRateLimitKey(email.toLowerCase())}`,
+        limit: 5,
+        windowSeconds: 900,
+      },
+    ]);
+    if (rateLimitRes) return rateLimitRes;
+  } catch {
+    return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
   }
 
   const supabase = await createServerSupabaseClient();

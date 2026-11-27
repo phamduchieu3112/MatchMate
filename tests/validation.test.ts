@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   computeOverpaySurplus,
   computeRefundableAmount,
+  extractClientIp,
   extractPaymentCode,
   validateAndNormalizePhone,
   validateMapUrl,
@@ -151,5 +152,47 @@ describe('map_url allowlist validation', () => {
     expect(validateMapUrl('javascript:alert(1)').valid).toBe(false);
     expect(validateMapUrl('https://evil.example.com/maps').valid).toBe(false);
     expect(validateMapUrl('https://www.google.com/search?q=bad').valid).toBe(false);
+  });
+});
+
+describe('Client IP extraction', () => {
+  it('prefers x-vercel-forwarded-for, then cf-connecting-ip, then x-real-ip, and ignores x-forwarded-for', () => {
+    expect(
+      extractClientIp(
+        new Headers({
+          'x-forwarded-for': '9.9.9.9',
+          'x-vercel-forwarded-for': '203.0.113.10, 10.0.0.1',
+          'cf-connecting-ip': '198.51.100.2',
+          'x-real-ip': '192.0.2.5',
+        })
+      )
+    ).toBe('203.0.113.10');
+
+    expect(
+      extractClientIp(
+        new Headers({
+          'x-forwarded-for': '9.9.9.9',
+          'cf-connecting-ip': '198.51.100.2',
+          'x-real-ip': '192.0.2.5',
+        })
+      )
+    ).toBe('198.51.100.2');
+
+    expect(
+      extractClientIp(
+        new Headers({
+          'x-forwarded-for': '9.9.9.9',
+          'x-real-ip': '192.0.2.5',
+        })
+      )
+    ).toBe('192.0.2.5');
+
+    expect(
+      extractClientIp(
+        new Headers({
+          'x-forwarded-for': '9.9.9.9',
+        })
+      )
+    ).toBe('127.0.0.1');
   });
 });

@@ -1,6 +1,7 @@
+import crypto from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { requireHostMutation } from '@/lib/host-api';
+import { requireHostMutation, safeRpcError } from '@/lib/host-api';
 import {
   extractClientIp,
   isValidPin,
@@ -46,7 +47,10 @@ export async function POST(
   const name = sanitizeText(body.name, 60);
   const phone = validateAndNormalizePhone(body.contact);
   const slots = Number(body.slots);
-  const pin = typeof body.pin === 'string' && isValidPin(body.pin) ? body.pin : '0000';
+  const pin =
+    typeof body.pin === 'string' && isValidPin(body.pin)
+      ? body.pin
+      : crypto.randomInt(0, 10000).toString().padStart(4, '0');
 
   if (!name || !phone.valid || !Number.isInteger(slots) || slots < 1 || slots > 4) {
     return NextResponse.json({ error: 'invalid_input' }, { status: 400 });
@@ -63,7 +67,10 @@ export async function POST(
   });
 
   if (error || !data || !Array.isArray(data) || data.length === 0) {
-    return NextResponse.json({ error: error?.message || 'add_failed' }, { status: 400 });
+    return NextResponse.json(
+      { error: safeRpcError(error?.message, 'add_failed') },
+      { status: 400 }
+    );
   }
 
   const row = data[0] as { id: string; payment_code: string; status: string };

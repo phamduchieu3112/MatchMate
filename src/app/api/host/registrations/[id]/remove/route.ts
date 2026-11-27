@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireHostMutation } from '@/lib/host-api';
+import { requireHostMutation, safeRpcError } from '@/lib/host-api';
 import { isValidUuid } from '@/lib/validation';
 
 export async function POST(
@@ -28,7 +28,10 @@ export async function POST(
   });
 
   if (error) {
-    return NextResponse.json({ error: error.message || 'remove_failed' }, { status: 400 });
+    return NextResponse.json(
+      { error: safeRpcError(error.message, 'remove_failed') },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json(data, { status: 200 });

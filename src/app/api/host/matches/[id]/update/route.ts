@@ -48,12 +48,29 @@ export async function POST(
     }
     updates.lock_at = body.lock_at;
   }
-  if (
-    typeof updates.starts_at === 'string' &&
-    typeof updates.lock_at === 'string' &&
-    new Date(updates.lock_at).getTime() > new Date(updates.starts_at).getTime()
-  ) {
-    return NextResponse.json({ error: 'lock_after_start' }, { status: 400 });
+  if (updates.starts_at !== undefined || updates.lock_at !== undefined) {
+    let effectiveStartsAt = updates.starts_at as string | undefined;
+    let effectiveLockAt = updates.lock_at as string | undefined;
+
+    if (!effectiveStartsAt || !effectiveLockAt) {
+      const { data: existingTimes } = await auth.supabase
+        .from('matches')
+        .select('starts_at, lock_at')
+        .eq('id', id)
+        .maybeSingle();
+      if (!existingTimes) {
+        return NextResponse.json({ error: 'match_not_found' }, { status: 404 });
+      }
+      effectiveStartsAt = effectiveStartsAt ?? existingTimes.starts_at;
+      effectiveLockAt = effectiveLockAt ?? existingTimes.lock_at;
+    }
+
+    if (
+      new Date(effectiveLockAt as string).getTime() >
+      new Date(effectiveStartsAt as string).getTime()
+    ) {
+      return NextResponse.json({ error: 'lock_after_start' }, { status: 400 });
+    }
   }
   if (body.location_name !== undefined) {
     const loc = sanitizeText(body.location_name, 160);
@@ -75,14 +92,14 @@ export async function POST(
   }
   if (body.fee_per_slot !== undefined) {
     const fee = Number(body.fee_per_slot);
-    if (!Number.isInteger(fee) || fee < 0) {
+    if (!Number.isInteger(fee) || fee < 0 || fee > 10_000_000) {
       return NextResponse.json({ error: 'invalid_fee' }, { status: 400 });
     }
     updates.fee_per_slot = fee;
   }
   if (body.max_slots !== undefined) {
     const maxSlots = Number(body.max_slots);
-    if (!Number.isInteger(maxSlots) || maxSlots < 1) {
+    if (!Number.isInteger(maxSlots) || maxSlots < 1 || maxSlots > 200) {
       return NextResponse.json({ error: 'invalid_max_slots' }, { status: 400 });
     }
     const { data: existing } = await auth.supabase
@@ -103,39 +120,42 @@ export async function POST(
           .map((s) => s.trim())
           .filter(Boolean)
       : [];
+    if (parts.length > 50) {
+      return NextResponse.json({ error: 'invalid_courts' }, { status: 400 });
+    }
     updates.court_numbers = parts.length > 0 ? parts.join(', ').slice(0, 80) : null;
     updates.courts = Math.max(1, parts.length);
   } else if (body.courts !== undefined) {
     const courts = Number(body.courts);
-    if (!Number.isInteger(courts) || courts < 1) {
+    if (!Number.isInteger(courts) || courts < 1 || courts > 50) {
       return NextResponse.json({ error: 'invalid_courts' }, { status: 400 });
     }
     updates.courts = courts;
   }
   if (body.cancel_cutoff_hours !== undefined) {
     const cutoff = Number(body.cancel_cutoff_hours);
-    if (!Number.isInteger(cutoff) || cutoff < 0) {
+    if (!Number.isInteger(cutoff) || cutoff < 0 || cutoff > 168) {
       return NextResponse.json({ error: 'invalid_cancel_cutoff' }, { status: 400 });
     }
     updates.cancel_cutoff_hours = cutoff;
   }
   if (body.hold_minutes !== undefined) {
     const hold = Number(body.hold_minutes);
-    if (!Number.isInteger(hold) || hold < 1) {
+    if (!Number.isInteger(hold) || hold < 1 || hold > 1440) {
       return NextResponse.json({ error: 'invalid_hold_minutes' }, { status: 400 });
     }
     updates.hold_minutes = hold;
   }
   if (body.court_fee_total !== undefined) {
     const courtFee = Number(body.court_fee_total);
-    if (!Number.isInteger(courtFee) || courtFee < 0) {
+    if (!Number.isInteger(courtFee) || courtFee < 0 || courtFee > 100_000_000) {
       return NextResponse.json({ error: 'invalid_court_fee' }, { status: 400 });
     }
     updates.court_fee_total = courtFee;
   }
   if (body.shuttle_fee_total !== undefined) {
     const shuttleFee = Number(body.shuttle_fee_total);
-    if (!Number.isInteger(shuttleFee) || shuttleFee < 0) {
+    if (!Number.isInteger(shuttleFee) || shuttleFee < 0 || shuttleFee > 100_000_000) {
       return NextResponse.json({ error: 'invalid_shuttle_fee' }, { status: 400 });
     }
     updates.shuttle_fee_total = shuttleFee;

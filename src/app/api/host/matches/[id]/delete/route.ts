@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { requireHostMutation } from '@/lib/host-api';
+import { requireHostMutation, safeRpcError } from '@/lib/host-api';
+import { enforceRateLimits } from '@/lib/rate-limit';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isValidUuid } from '@/lib/validation';
 
@@ -14,6 +15,16 @@ export async function POST(
   const { id } = await params;
   if (!isValidUuid(id)) {
     return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+  }
+
+  try {
+    const admin = createAdminClient();
+    const rateLimitRes = await enforceRateLimits(admin, [
+      { key: `delete_match:user:${auth.user.id}`, limit: 5, windowSeconds: 900 },
+    ]);
+    if (rateLimitRes) return rateLimitRes;
+  } catch {
+    return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
   }
 
   let password = '';
@@ -66,47 +77,15 @@ export async function POST(
   }
 
   try {
-    const admin = createAdminClient();
+    const { error: delErr } = await auth.supabase.rpc('host_delete_match', {
+      p_match_id: id,
+    });
 
-    const { data: regs, error: regErr } = await admin
-      .from('registrations')
-      .select('id')
-      .eq('match_id', id);
-
-    if (regErr) {
-      return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
-    }
-
-    const regIds = (regs ?? []).map((r) => r.id);
-
-    if (regIds.length > 0) {
-      const [refDel, payDel, idemDel] = await Promise.all([
-        admin.from('refunds').delete().in('registration_id', regIds),
-        admin.from('payments').delete().in('registration_id', regIds),
-        admin.from('request_idempotency').delete().in('registration_id', regIds),
-      ]);
-
-      if (refDel.error || payDel.error || idemDel.error) {
-        return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
-      }
-
-      const { error: delRegsErr } = await admin
-        .from('registrations')
-        .delete()
-        .eq('match_id', id);
-
-      if (delRegsErr) {
-        return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
-      }
-    }
-
-    const { error: delMatchErr } = await admin
-      .from('matches')
-      .delete()
-      .eq('id', id);
-
-    if (delMatchErr) {
-      return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
+    if (delErr) {
+      return NextResponse.json(
+        { error: safeRpcError(delErr.message, 'delete_failed') },
+        { status: 400 }
+      );
     }
 
     return NextResponse.json({ ok: true }, { status: 200 });

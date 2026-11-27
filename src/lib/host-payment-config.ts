@@ -1,3 +1,4 @@
+import 'server-only';
 import { normalizeBankAccount, verifySePayApiKey } from '@/lib/validation';
 
 export const PRIMARY_HOST_EMAIL = 'phamduchieu.robotics@gmail.com';

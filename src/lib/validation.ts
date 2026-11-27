@@ -235,7 +235,7 @@ export function computeOverpaySurplus(
 }
 
 /**
- * Extracts client IP from x-vercel-forwarded-for first, then x-real-ip.
+ * Extracts client IP from x-vercel-forwarded-for first, then cf-connecting-ip, then x-real-ip.
  * Never trusts leftmost x-forwarded-for.
  */
 export function extractClientIp(headers: Headers): string {
@@ -244,6 +244,9 @@ export function extractClientIp(headers: Headers): string {
     const first = vercelFwd.split(',')[0]?.trim();
     if (first && isLikelyIp(first)) return first;
   }
+
+  const cfIp = headers.get('cf-connecting-ip')?.trim();
+  if (cfIp && isLikelyIp(cfIp)) return cfIp;
 
   const realIp = headers.get('x-real-ip')?.trim();
   if (realIp && isLikelyIp(realIp)) return realIp;

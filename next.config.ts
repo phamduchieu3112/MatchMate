@@ -2,6 +2,10 @@ import type { NextConfig } from 'next';
 
 const CSP_HEADER = [
   "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
   "img-src 'self' data: https://qr.sepay.vn",
   "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
