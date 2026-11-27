@@ -4,9 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
+  AlertTriangle,
   ArrowRight,
   CopyPlus,
   ExternalLink,
+  Landmark,
   LogOut,
   Plus,
   Trash2,
@@ -18,7 +20,26 @@ import type { PublicMatch } from '@/lib/types';
 import { MatchMateLogo } from '@/components/MatchMateLogo';
 import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
 
-export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
+export interface HostPaymentStatusProp {
+  email: string;
+  isConfigured: boolean;
+  isFallback: boolean;
+  paymentInfo: {
+    bankCode: string;
+    accountNumber: string;
+    accountName: string;
+    transferPrefix: string;
+    isFallback: boolean;
+  } | null;
+}
+
+export function HostDashboardClient({
+  matches,
+  hostPaymentStatus,
+}: {
+  matches: PublicMatch[];
+  hostPaymentStatus?: HostPaymentStatusProp;
+}) {
   const { locale, t } = useLocale();
   const router = useRouter();
   const [matchList, setMatchList] = useState<PublicMatch[]>(matches);
@@ -105,6 +126,49 @@ export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
           </button>
         </div>
       </div>
+
+      {/* Host Payment Routing Status / Fallback Warning */}
+      {hostPaymentStatus && !hostPaymentStatus.isConfigured && (
+        <div className="flex items-start gap-2.5 rounded-2xl border border-amber-300 bg-amber-50 p-3.5 text-xs font-medium text-amber-950 dark:border-amber-700/60 dark:bg-amber-950/50 dark:text-amber-200">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <span>
+            {hostPaymentStatus.isFallback && hostPaymentStatus.paymentInfo
+              ? t('hostPaymentFallbackWarning', {
+                  email: hostPaymentStatus.email,
+                  bank: hostPaymentStatus.paymentInfo.bankCode,
+                  account: hostPaymentStatus.paymentInfo.accountNumber,
+                })
+              : t('hostPaymentMissingWarning', {
+                  email: hostPaymentStatus.email,
+                })}
+          </span>
+        </div>
+      )}
+
+      {hostPaymentStatus?.isConfigured && hostPaymentStatus.paymentInfo && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-xs shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
+            <Landmark className="h-4 w-4 shrink-0 text-zinc-950 dark:text-volt" />
+            <span className="font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              {t('hostPaymentAccountLabel')}:
+            </span>
+            <span className="font-extrabold text-zinc-950 dark:text-white">
+              {hostPaymentStatus.paymentInfo.bankCode}
+            </span>
+            <code className="rounded-md bg-zinc-100 px-1.5 py-0.5 font-mono font-bold text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+              {hostPaymentStatus.paymentInfo.accountNumber}
+            </code>
+            {hostPaymentStatus.paymentInfo.accountName && (
+              <span className="hidden text-zinc-500 dark:text-zinc-400 sm:inline">
+                · {hostPaymentStatus.paymentInfo.accountName}
+              </span>
+            )}
+          </div>
+          <span className="font-mono text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+            {hostPaymentStatus.email}
+          </span>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-3 gap-3">

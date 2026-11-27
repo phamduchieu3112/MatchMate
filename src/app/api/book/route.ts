@@ -1,7 +1,11 @@
 import crypto from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { buildSePayQrUrl, verifyTurnstileToken } from '@/lib/sepay';
+import {
+  buildHostPaymentClientBundle,
+  resolveMatchHostPayment,
+  verifyTurnstileToken,
+} from '@/lib/sepay';
 import {
   extractClientIp,
   isValidPin,
@@ -106,23 +110,34 @@ export async function POST(request: NextRequest) {
     if (existingIdem?.registration_id) {
       const { data: existingReg } = await admin
         .from('registrations')
-        .select('id, access_token, payment_code, status, amount_due, expires_at')
+        .select('id, match_id, access_token, payment_code, status, amount_due, expires_at')
         .eq('id', existingIdem.registration_id)
         .maybeSingle();
 
       if (existingReg) {
-        const qrUrl =
+        const resolvedHost = await resolveMatchHostPayment(admin, existingReg.match_id);
+        const paymentBundle =
           existingReg.status === 'pending_payment'
-            ? buildSePayQrUrl(existingReg.amount_due, existingReg.payment_code)
-            : null;
+            ? buildHostPaymentClientBundle(
+                existingReg.amount_due,
+                existingReg.payment_code,
+                resolvedHost
+              )
+            : {
+                qrUrl: null,
+                transferContent: existingReg.payment_code,
+                paymentInfo: null,
+              };
         const response = NextResponse.json(
           {
             registration_id: existingReg.id,
             payment_code: existingReg.payment_code,
+            transfer_content: paymentBundle.transferContent,
             status: existingReg.status,
             amount_due: existingReg.amount_due,
             expires_at: existingReg.expires_at,
-            qr_url: qrUrl,
+            qr_url: paymentBundle.qrUrl,
+            payment_info: paymentBundle.paymentInfo,
           },
           { status: 200 }
         );
@@ -206,19 +221,26 @@ export async function POST(request: NextRequest) {
         { onConflict: 'key' }
       );
 
-    const qrUrl =
+    const resolvedHost = await resolveMatchHostPayment(admin, matchId);
+    const paymentBundle =
       row.status === 'pending_payment'
-        ? buildSePayQrUrl(row.amount_due, row.payment_code)
-        : null;
+        ? buildHostPaymentClientBundle(row.amount_due, row.payment_code, resolvedHost)
+        : {
+            qrUrl: null,
+            transferContent: row.payment_code,
+            paymentInfo: null,
+          };
 
     const response = NextResponse.json(
       {
         registration_id: row.id,
         payment_code: row.payment_code,
+        transfer_content: paymentBundle.transferContent,
         status: row.status,
         amount_due: row.amount_due,
         expires_at: row.expires_at,
-        qr_url: qrUrl,
+        qr_url: paymentBundle.qrUrl,
+        payment_info: paymentBundle.paymentInfo,
       },
       { status: 201 }
     );

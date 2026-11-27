@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { LocaleProvider } from '@/lib/i18n/LocaleProvider';
 import { AppHeader } from '@/components/AppHeader';
+import { FloatingHelpButton } from '@/components/FloatingHelpButton';
 import { SwRegister } from '@/components/SwRegister';
 import './globals.css';
 
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <SwRegister />
             <AppHeader />
             <main className="mx-auto max-w-4xl px-4 pb-28 pt-5">{children}</main>
+            <FloatingHelpButton />
           </LocaleProvider>
         </ThemeProvider>
       </body>

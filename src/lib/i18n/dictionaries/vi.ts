@@ -160,6 +160,19 @@ export const vi = {
   vietQrAlt: 'Mã QR thanh toán VietQR',
   qrInstruction:
     'Quét mã VietQR bằng ứng dụng ngân hàng. Chỗ của bạn sẽ được xác nhận khi tiền vào.',
+  bankLabel: 'Ngân hàng',
+  accountNumberLabel: 'Số tài khoản',
+  accountNameLabel: 'Chủ tài khoản',
+  paymentNotConfiguredNotice:
+    'Chủ sân chưa cấu hình tài khoản nhận chuyển khoản VietQR. Vui lòng liên hệ chủ sân.',
+  hostPaymentAccountLabel: 'Tài khoản nhận tiền',
+  hostPaymentFallbackWarning:
+    'Email {email} chưa được cấu hình SePay riêng. Các kèo của bạn hiện đang dùng tạm tài khoản mặc định ({bank} · {account}).',
+  hostPaymentMissingWarning:
+    'Email {email} chưa được cấu hình tài khoản ngân hàng / SePay trong hệ thống. Người chơi sẽ chưa thấy mã VietQR.',
+  helpButtonLabel: 'Mở trợ giúp',
+  helpCloseLabel: 'Đóng trợ giúp',
+  helpMessengerLabel: 'Hỗ trợ qua Messenger',
   refundSectionTitle: 'Tài khoản nhận hoàn tiền',
   refundAccountLabel: 'Tài khoản nhận hoàn tiền',
   refundAccountPlaceholder: 'VD: MBBank 0123456789 - NGUYEN VAN A',

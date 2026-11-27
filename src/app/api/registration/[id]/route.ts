@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { buildSePayQrUrl } from '@/lib/sepay';
+import {
+  buildHostPaymentClientBundle,
+  resolveMatchHostPayment,
+} from '@/lib/sepay';
 import { isValidUuid } from '@/lib/validation';
 import type { MyRegistrationPayload } from '@/lib/types';
 
@@ -37,15 +40,29 @@ export async function GET(
 
     const reg = data as MyRegistrationPayload;
     const amountRemaining = Math.max(reg.amount_due - reg.net_paid, 0);
-    const qrUrl =
-      reg.status === 'pending_payment' && amountRemaining > 0
-        ? buildSePayQrUrl(amountRemaining, reg.payment_code)
-        : null;
+
+    let qrUrl: string | null = null;
+    let transferContent = reg.payment_code;
+    let paymentInfo: MyRegistrationPayload['payment_info'] = null;
+
+    if (reg.status === 'pending_payment' && amountRemaining > 0) {
+      const resolvedHost = await resolveMatchHostPayment(admin, reg.match_id);
+      const bundle = buildHostPaymentClientBundle(
+        amountRemaining,
+        reg.payment_code,
+        resolvedHost
+      );
+      qrUrl = bundle.qrUrl;
+      transferContent = bundle.transferContent;
+      paymentInfo = bundle.paymentInfo;
+    }
 
     return NextResponse.json({
       ...reg,
       amount_remaining: amountRemaining,
       qr_url: qrUrl,
+      transfer_content: transferContent,
+      payment_info: paymentInfo,
     });
   } catch {
     return NextResponse.json({ error: 'internal_error' }, { status: 500 });

@@ -70,6 +70,14 @@ export interface MyRegistrationPayload {
   cancelled_at: string | null;
   refunds: RefundItem[];
   qr_url?: string | null;
+  transfer_content?: string;
+  payment_info?: {
+    bankCode: string;
+    accountNumber: string;
+    accountName: string;
+    transferPrefix: string;
+    isFallback: boolean;
+  } | null;
   amount_remaining?: number;
   match: {
     short_code: string;

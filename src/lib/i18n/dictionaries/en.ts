@@ -162,6 +162,19 @@ export const en: Dictionary = {
   vietQrAlt: 'VietQR payment QR code',
   qrInstruction:
     'Scan the VietQR with your banking app. Your spot is confirmed once payment arrives.',
+  bankLabel: 'Bank',
+  accountNumberLabel: 'Account No.',
+  accountNameLabel: 'Account Holder',
+  paymentNotConfiguredNotice:
+    'The organizer has not configured a VietQR bank account yet. Please contact the organizer.',
+  hostPaymentAccountLabel: 'Payout Account',
+  hostPaymentFallbackWarning:
+    '{email} does not have its own SePay configuration yet. Payments currently fall back to the default host account ({bank} · {account}).',
+  hostPaymentMissingWarning:
+    '{email} is not configured in host payment settings yet. Players will not see a VietQR code until configured.',
+  helpButtonLabel: 'Open help menu',
+  helpCloseLabel: 'Close help menu',
+  helpMessengerLabel: 'Chat via Messenger',
   refundSectionTitle: 'Refund Receiving Account',
   refundAccountLabel: 'Refund Account',
   refundAccountPlaceholder: 'e.g. MBBank 0123456789 - JOHN DOE',

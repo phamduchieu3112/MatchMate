@@ -3,6 +3,10 @@ import {
   createServerSupabaseClient,
   getAuthenticatedHost,
 } from '@/lib/supabase/server';
+import {
+  resolveHostPaymentConfig,
+  toPublicHostPaymentDetails,
+} from '@/lib/host-payment-config';
 import type { PublicMatch } from '@/lib/types';
 import { HostDashboardClient } from '@/components/host/HostDashboardClient';
 
@@ -23,5 +27,21 @@ export default async function HostDashboardPage() {
     .order('starts_at', { ascending: false })
     .limit(50);
 
-  return <HostDashboardClient matches={(data ?? []) as PublicMatch[]} />;
+  const resolvedPayment = resolveHostPaymentConfig(user.email);
+  const publicPayment = toPublicHostPaymentDetails(
+    resolvedPayment.config,
+    resolvedPayment.isFallback
+  );
+
+  return (
+    <HostDashboardClient
+      matches={(data ?? []) as PublicMatch[]}
+      hostPaymentStatus={{
+        email: user.email ?? '',
+        isConfigured: resolvedPayment.isConfigured,
+        isFallback: resolvedPayment.isFallback,
+        paymentInfo: publicPayment,
+      }}
+    />
+  );
 }

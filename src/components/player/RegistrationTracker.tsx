@@ -32,6 +32,7 @@ export function RegistrationTracker({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [unauthorized, setUnauthorized] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedAcc, setCopiedAcc] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [checkinQrUrl, setCheckinQrUrl] = useState<string>('');
 
@@ -165,11 +166,25 @@ export function RegistrationTracker({ id }: { id: string }) {
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
+  const transferMemo = reg.transfer_content || reg.payment_code;
+
   const copyCode = async () => {
     try {
-      await navigator.clipboard.writeText(reg.payment_code);
+      await navigator.clipboard.writeText(transferMemo);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Ignore clipboard failure
+    }
+  };
+
+  const copyAccountNumber = async () => {
+    const acc = reg.payment_info?.accountNumber;
+    if (!acc) return;
+    try {
+      await navigator.clipboard.writeText(acc);
+      setCopiedAcc(true);
+      window.setTimeout(() => setCopiedAcc(false), 2000);
     } catch {
       // Ignore clipboard failure
     }
@@ -429,13 +444,52 @@ export function RegistrationTracker({ id }: { id: string }) {
                 {formatVnd(remainingAmount > 0 ? remainingAmount : reg.amount_due, locale)}
               </p>
 
-              <div className="mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2">
+              {reg.payment_info && (
+                <div className="mt-3 w-full space-y-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-zinc-500">{t('bankLabel')}</span>
+                    <span className="font-extrabold text-zinc-950">
+                      {reg.payment_info.bankCode}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-zinc-500">
+                      {t('accountNumberLabel')}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <code className="font-mono font-black text-zinc-950">
+                        {reg.payment_info.accountNumber}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={copyAccountNumber}
+                        aria-label={t('copyCode')}
+                        className="inline-flex items-center rounded-md border border-zinc-300 bg-white px-1.5 py-0.5 text-[10px] font-bold text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950"
+                      >
+                        {copiedAcc ? t('copied') : t('copyCode')}
+                      </button>
+                    </div>
+                  </div>
+                  {reg.payment_info.accountName && (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-semibold text-zinc-500">
+                        {t('accountNameLabel')}
+                      </span>
+                      <span className="truncate font-bold uppercase text-zinc-900">
+                        {reg.payment_info.accountName}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-2.5 flex w-full items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2">
                 <div className="min-w-0 text-left">
                   <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
                     {t('transferMemoPrefix')}
                   </span>
                   <code className="block truncate font-mono text-sm font-black text-zinc-950">
-                    {reg.payment_code}
+                    {transferMemo}
                   </code>
                 </div>
                 <button
@@ -460,6 +514,13 @@ export function RegistrationTracker({ id }: { id: string }) {
               <p className="mt-3 text-center text-xs leading-relaxed text-zinc-600">
                 {t('qrInstruction')}
               </p>
+            </div>
+          )}
+
+          {reg.status === 'pending_payment' && !reg.qr_url && (
+            <div className="flex items-start gap-2.5 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs font-semibold text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/50 dark:text-amber-200">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{t('paymentNotConfiguredNotice')}</span>
             </div>
           )}
 
