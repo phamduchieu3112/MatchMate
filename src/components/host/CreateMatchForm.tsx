@@ -18,6 +18,7 @@ export function CreateMatchForm() {
   const [sport, setSport] = useState(t('sportBadminton'));
   const [title, setTitle] = useState('');
   const [startsAt, setStartsAt] = useState('');
+  const [endsAt, setEndsAt] = useState('');
   const [lockAt, setLockAt] = useState('');
   const [locationName, setLocationName] = useState('');
   const [mapUrl, setMapUrl] = useState('');
@@ -41,6 +42,29 @@ export function CreateMatchForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const effectiveLockAt = lockAt || startsAt;
+    if (
+      effectiveLockAt &&
+      startsAt &&
+      new Date(toVietnamOffsetIso(effectiveLockAt)).getTime() >
+        new Date(toVietnamOffsetIso(startsAt)).getTime()
+    ) {
+      setError(t('errLockAfterStart'));
+      return;
+    }
+
+    const startTimePart = startsAt.split('T')[1] ?? '';
+    const trimmedNotes = notes.trim();
+    const timeRangeLabel =
+      startTimePart && endsAt ? `${startTimePart} - ${endsAt}` : '';
+    const finalNotes =
+      timeRangeLabel && !trimmedNotes.includes(timeRangeLabel) && !title.includes(endsAt)
+        ? trimmedNotes
+          ? `${timeRangeLabel} · ${trimmedNotes}`
+          : timeRangeLabel
+        : trimmedNotes || null;
+
     setSaving(true);
     try {
       const res = await fetch('/api/host/matches', {
@@ -50,7 +74,7 @@ export function CreateMatchForm() {
           sport,
           title,
           starts_at: toVietnamOffsetIso(startsAt),
-          lock_at: toVietnamOffsetIso(lockAt),
+          lock_at: toVietnamOffsetIso(effectiveLockAt),
           location_name: locationName,
           map_url: mapUrl || null,
           level: level || null,
@@ -59,7 +83,7 @@ export function CreateMatchForm() {
           courts: Number(courts),
           cancel_cutoff_hours: Number(cancelCutoffHours),
           hold_minutes: Number(holdMinutes),
-          notes: notes || null,
+          notes: finalNotes,
         }),
       });
       const payload = (await res.json()) as { id?: string; error?: string };
@@ -143,7 +167,7 @@ export function CreateMatchForm() {
             </div>
 
             <div>
-              <label className={labelClass}>{t('startsAt')} (+07:00)</label>
+              <label className={labelClass}>{t('startsAt')}</label>
               <input
                 type="datetime-local"
                 required
@@ -154,14 +178,26 @@ export function CreateMatchForm() {
             </div>
 
             <div>
-              <label className={labelClass}>{t('lockAt')} (+07:00)</label>
+              <label className={labelClass}>{t('endsAt')}</label>
+              <input
+                type="time"
+                value={endsAt}
+                onChange={(e) => setEndsAt(e.target.value)}
+                className={inputClass}
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className={labelClass}>{t('lockAt')}</label>
               <input
                 type="datetime-local"
-                required
                 value={lockAt}
                 onChange={(e) => setLockAt(e.target.value)}
                 className={inputClass}
               />
+              <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                {t('lockAtOptionalHint')}
+              </p>
             </div>
 
             <div>
