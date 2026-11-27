@@ -239,7 +239,16 @@ export const en: Dictionary = {
     'Cancel this session and create refunds for all paid players?',
   hostDeleteMatch: 'Delete',
   hostDeleteMatchConfirm:
-    'Permanently delete this session? (Only allowed when no payments exist.)',
+    'Permanently delete this session?',
+  hostDeleteModalTitle: 'Permanently delete session',
+  hostDeleteModalDesc:
+    'This permanently deletes the session along with all registrations and any recorded payments or refunds. This action cannot be undone.',
+  hostDeletePasswordLabel: 'Admin account password',
+  hostDeletePasswordPlaceholder: 'Enter admin password to confirm deletion',
+  hostDeleteConfirmBtn: 'Confirm Delete',
+  hostDeleteDeleting: 'Deleting...',
+  hostDeletePasswordRequired: 'Please enter your admin account password.',
+  hostDeleteInvalidPassword: 'Incorrect admin account password.',
   errMatchHasPayments:
     'Cannot delete a session with recorded payments. Use Cancel session to issue refunds instead.',
   hostMarkCashPaid: 'Cash Paid',

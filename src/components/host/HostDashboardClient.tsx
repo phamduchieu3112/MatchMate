@@ -16,46 +16,20 @@ import { translateMatchStatus } from '@/lib/i18n/helpers';
 import { formatMatchDateTime, formatVnd } from '@/lib/format';
 import type { PublicMatch } from '@/lib/types';
 import { MatchMateLogo } from '@/components/MatchMateLogo';
+import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
 
 export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
   const { locale, t } = useLocale();
   const router = useRouter();
   const [matchList, setMatchList] = useState<PublicMatch[]>(matches);
   const [cloningId, setCloningId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<PublicMatch | null>(null);
   const [error, setError] = useState('');
 
   const handleLogout = async () => {
     await fetch('/api/host/logout', { method: 'POST' });
     router.push('/host/login');
     router.refresh();
-  };
-
-  const handleDelete = async (matchId: string) => {
-    if (!window.confirm(t('hostDeleteMatchConfirm'))) return;
-    setError('');
-    setDeletingId(matchId);
-    try {
-      const res = await fetch(`/api/host/matches/${matchId}/delete`, {
-        method: 'POST',
-      });
-      const payload = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok || !payload.ok) {
-        setError(
-          payload.error === 'match_has_payments'
-            ? t('errMatchHasPayments')
-            : t('errGeneric')
-        );
-        setDeletingId(null);
-        return;
-      }
-      setMatchList((prev) => prev.filter((item) => item.id !== matchId));
-      setDeletingId(null);
-      router.refresh();
-    } catch {
-      setError(t('errGeneric'));
-      setDeletingId(null);
-    }
   };
 
   const handleClone = async (matchId: string) => {
@@ -250,8 +224,7 @@ export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
                   </Link>
                   <button
                     type="button"
-                    disabled={deletingId === m.id}
-                    onClick={() => void handleDelete(m.id)}
+                    onClick={() => setDeleteTarget(m)}
                     title={t('hostDeleteMatch')}
                     aria-label={t('hostDeleteMatch')}
                     className="inline-flex h-9 items-center gap-1 rounded-xl border border-rose-300 bg-rose-50 px-2.5 text-xs font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:bg-rose-950"
@@ -264,6 +237,21 @@ export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
             );
           })}
         </div>
+      )}
+
+      {deleteTarget && (
+        <DeleteMatchModal
+          matchId={deleteTarget.id}
+          matchTitle={deleteTarget.title}
+          shortCode={deleteTarget.short_code}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={() => {
+            const deletedId = deleteTarget.id;
+            setDeleteTarget(null);
+            setMatchList((prev) => prev.filter((item) => item.id !== deletedId));
+            router.refresh();
+          }}
+        />
       )}
     </div>
   );

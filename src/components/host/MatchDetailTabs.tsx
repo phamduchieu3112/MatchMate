@@ -13,6 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { QrCheckinModal } from '@/components/host/QrCheckinModal';
+import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import {
   formatSlotLabel,
@@ -97,6 +98,7 @@ export function MatchDetailTabs({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   // Roster filter/search
   const [searchQuery, setSearchQuery] = useState('');
@@ -151,32 +153,6 @@ export function MatchDetailTabs({
       return true;
     } catch {
       return false;
-    }
-  };
-
-  const handleDeleteMatch = async () => {
-    if (!window.confirm(t('hostDeleteMatchConfirm'))) return;
-    setMsg('');
-    setBusy(true);
-    try {
-      const res = await fetch(`/api/host/matches/${match.id}/delete`, {
-        method: 'POST',
-      });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
-      if (!res.ok || !data.ok) {
-        setMsg(
-          data.error === 'match_has_payments'
-            ? t('errMatchHasPayments')
-            : t('errGeneric')
-        );
-        setBusy(false);
-        return;
-      }
-      router.push('/host');
-      router.refresh();
-    } catch {
-      setMsg(t('errGeneric'));
-      setBusy(false);
     }
   };
 
@@ -290,7 +266,7 @@ export function MatchDetailTabs({
           <button
             type="button"
             disabled={busy}
-            onClick={() => void handleDeleteMatch()}
+            onClick={() => setDeleteModalOpen(true)}
             className="inline-flex items-center gap-1 rounded-xl border border-rose-300 bg-white px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-50 disabled:opacity-40 dark:border-rose-800 dark:bg-zinc-900 dark:text-rose-300 dark:hover:bg-rose-950/60"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -986,6 +962,19 @@ export function MatchDetailTabs({
         registrations={registrations}
         onCheckin={handleQrCheckin}
       />
+      {deleteModalOpen && (
+        <DeleteMatchModal
+          matchId={match.id}
+          matchTitle={match.title}
+          shortCode={match.short_code}
+          onClose={() => setDeleteModalOpen(false)}
+          onDeleted={() => {
+            setDeleteModalOpen(false);
+            router.push('/host');
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { requireHostMutation } from '@/lib/host-api';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { isValidUuid } from '@/lib/validation';
@@ -15,6 +16,20 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
   }
 
+  let password = '';
+  try {
+    const parsed = (await request.json()) as Record<string, unknown> | null;
+    if (parsed && typeof parsed.password === 'string') {
+      password = parsed.password;
+    }
+  } catch {
+    return NextResponse.json({ error: 'password_required' }, { status: 400 });
+  }
+
+  if (!password.trim()) {
+    return NextResponse.json({ error: 'password_required' }, { status: 400 });
+  }
+
   // Verify the host owns this match via RLS
   const { data: ownedMatch, error: ownErr } = await auth.supabase
     .from('matches')
@@ -26,45 +41,54 @@ export async function POST(
     return NextResponse.json({ error: 'match_not_found' }, { status: 404 });
   }
 
+  // Verify admin account password without disturbing current session cookies
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey || !auth.user.email) {
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+  }
+
+  const verifyClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+
+  const { data: verifyData, error: verifyErr } =
+    await verifyClient.auth.signInWithPassword({
+      email: auth.user.email,
+      password,
+    });
+
+  if (verifyErr || !verifyData.user || verifyData.user.id !== auth.user.id) {
+    return NextResponse.json({ error: 'invalid_password' }, { status: 401 });
+  }
+
   try {
     const admin = createAdminClient();
 
     const { data: regs, error: regErr } = await admin
       .from('registrations')
-      .select('id, amount_paid')
+      .select('id')
       .eq('match_id', id);
 
     if (regErr) {
       return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
     }
 
-    const regRows = regs ?? [];
-    const regIds = regRows.map((r) => r.id);
-
-    if (regRows.some((r) => (r.amount_paid ?? 0) > 0)) {
-      return NextResponse.json({ error: 'match_has_payments' }, { status: 409 });
-    }
+    const regIds = (regs ?? []).map((r) => r.id);
 
     if (regIds.length > 0) {
-      const [payCheck, refCheck] = await Promise.all([
-        admin
-          .from('payments')
-          .select('id', { count: 'exact', head: true })
-          .in('registration_id', regIds),
-        admin
-          .from('refunds')
-          .select('id', { count: 'exact', head: true })
-          .in('registration_id', regIds),
+      const [refDel, payDel, idemDel] = await Promise.all([
+        admin.from('refunds').delete().in('registration_id', regIds),
+        admin.from('payments').delete().in('registration_id', regIds),
+        admin.from('request_idempotency').delete().in('registration_id', regIds),
       ]);
 
-      if ((payCheck.count ?? 0) > 0 || (refCheck.count ?? 0) > 0) {
-        return NextResponse.json({ error: 'match_has_payments' }, { status: 409 });
+      if (refDel.error || payDel.error || idemDel.error) {
+        return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
       }
-
-      await admin
-        .from('request_idempotency')
-        .delete()
-        .in('registration_id', regIds);
 
       const { error: delRegsErr } = await admin
         .from('registrations')

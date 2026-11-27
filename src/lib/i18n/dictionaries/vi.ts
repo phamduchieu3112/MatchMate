@@ -237,7 +237,16 @@ export const vi = {
     'Hủy toàn bộ buổi chơi và tạo yêu cầu hoàn tiền cho tất cả người đã đóng tiền?',
   hostDeleteMatch: 'Xóa',
   hostDeleteMatchConfirm:
-    'Xóa vĩnh viễn buổi chơi này? (Chỉ xóa được khi chưa có ai chuyển khoản.)',
+    'Xóa vĩnh viễn buổi chơi này?',
+  hostDeleteModalTitle: 'Xóa vĩnh viễn buổi chơi',
+  hostDeleteModalDesc:
+    'Hành động này sẽ xóa vĩnh viễn buổi chơi cùng toàn bộ danh sách đăng ký và dữ liệu thanh toán/hoàn tiền liên quan (nếu có). Không thể hoàn tác.',
+  hostDeletePasswordLabel: 'Mật khẩu tài khoản quản trị',
+  hostDeletePasswordPlaceholder: 'Nhập mật khẩu admin để xác nhận xóa',
+  hostDeleteConfirmBtn: 'Xác nhận xóa',
+  hostDeleteDeleting: 'Đang xóa...',
+  hostDeletePasswordRequired: 'Vui lòng nhập mật khẩu tài khoản quản trị.',
+  hostDeleteInvalidPassword: 'Mật khẩu tài khoản quản trị không đúng.',
   errMatchHasPayments:
     'Không thể xóa buổi chơi đã có giao dịch thanh toán. Hãy dùng nút Hủy buổi chơi để hoàn tiền.',
   hostMarkCashPaid: 'Thu tiền mặt',
