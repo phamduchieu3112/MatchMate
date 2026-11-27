@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { dispatchHostNotification } from '@/lib/notifications';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   enforceRateLimits,
@@ -171,14 +172,20 @@ export async function POST(request: NextRequest) {
     // Verify requested slots do not exceed the match's configured max_slots
     const { data: matchMeta } = await admin
       .from('matches')
-      .select('max_slots')
+      .select('max_slots, host_id, title, short_code')
       .eq('id', matchId)
       .maybeSingle();
 
     if (!matchMeta) {
       return NextResponse.json({ error: 'match_not_found' }, { status: 404 });
     }
-    if (slots > (matchMeta as { max_slots: number }).max_slots) {
+    const typedMatchMeta = matchMeta as {
+      max_slots: number;
+      host_id: string;
+      title: string;
+      short_code: string;
+    };
+    if (slots > typedMatchMeta.max_slots) {
       return NextResponse.json({ error: 'invalid_slots' }, { status: 400 });
     }
 
@@ -222,6 +229,19 @@ export async function POST(request: NextRequest) {
             transferContent: row.payment_code,
             paymentInfo: null,
           };
+
+    await dispatchHostNotification(admin, typedMatchMeta.host_id, {
+      type: 'booking',
+      matchTitle: typedMatchMeta.title,
+      shortCode: typedMatchMeta.short_code,
+      playerName: displayName,
+      slots,
+      amountVnd: row.amount_due,
+      detail:
+        row.status === 'waitlisted'
+          ? `Vào hàng chờ · Mã ${row.payment_code}`
+          : `Giữ chỗ chờ thanh toán · Mã ${row.payment_code}`,
+    });
 
     const response = NextResponse.json(
       {

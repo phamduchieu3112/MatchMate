@@ -33,15 +33,17 @@ export default async function HostMatchDetailPage({
 
   const supabase = await createServerSupabaseClient();
 
-  // Fetch match, registrations, and unmatched payments in parallel (1 round-trip instead of 3)
-  const [matchRes, regsRes, unmatchedRes] = await Promise.all([
+  // Fetch match, registrations, and unmatched payments in parallel
+  const baseMatchCols =
+    'id, short_code, sport, title, starts_at, location_name, map_url, level, fee_per_slot, max_slots, courts, court_numbers, lock_at, cancel_cutoff_hours, hold_minutes, status, slots_taken, notes, court_fee_total, shuttle_fee_total, created_at';
+
+  const [matchRes, extrasRes, regsRes, unmatchedRes] = await Promise.all([
+    supabase.from('matches').select(baseMatchCols).eq('id', id).single(),
     supabase
       .from('matches')
-      .select(
-        'id, short_code, sport, title, starts_at, location_name, map_url, level, fee_per_slot, max_slots, courts, court_numbers, lock_at, cancel_cutoff_hours, hold_minutes, status, slots_taken, notes, court_fee_total, shuttle_fee_total, created_at'
-      )
+      .select('extras_fee_total, shuttle_count')
       .eq('id', id)
-      .single(),
+      .maybeSingle(),
     supabase
       .from('registrations')
       .select(
@@ -62,6 +64,17 @@ export default async function HostMatchDetailPage({
   if (!matchRes.data) {
     notFound();
   }
+
+  const extrasData = (extrasRes.data as {
+    extras_fee_total?: number;
+    shuttle_count?: number;
+  } | null) ?? { extras_fee_total: 0, shuttle_count: 0 };
+
+  const matchWithExtras: HostMatchRow = {
+    ...(matchRes.data as HostMatchRow),
+    extras_fee_total: extrasData.extras_fee_total ?? 0,
+    shuttle_count: extrasData.shuttle_count ?? 0,
+  };
 
   const registrations = (regsRes.data ?? []) as HostRegistrationRow[];
   const regIds = registrations.map((r) => r.id);
@@ -88,7 +101,7 @@ export default async function HostMatchDetailPage({
 
   return (
     <MatchDetailTabs
-      match={matchRes.data as HostMatchRow}
+      match={matchWithExtras}
       registrations={registrations}
       payments={(paymentsRes.data ?? []) as HostPaymentRow[]}
       unmatchedPayments={(unmatchedRes.data ?? []) as HostPaymentRow[]}

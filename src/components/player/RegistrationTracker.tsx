@@ -7,15 +7,23 @@ import {
   AlertCircle,
   AlertTriangle,
   ArrowLeft,
+  CalendarPlus,
   Check,
   CheckCircle2,
   Clock,
   Copy,
+  Download,
+  ExternalLink,
   QrCode,
   RefreshCw,
   X,
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
+import {
+  buildGoogleCalendarUrl,
+  buildMatchIcsContent,
+  downloadIcsFile,
+} from '@/lib/calendar';
 import {
   formatSlotLabel,
   translatePaymentMethod,
@@ -429,6 +437,65 @@ export function RegistrationTracker({ id }: { id: string }) {
               <p className="mt-3 text-center text-xs leading-relaxed text-zinc-600">
                 {t('checkinQrDesc')}
               </p>
+
+              {/* 1-Tap Add to Calendar (.ics + Google Calendar) */}
+              <div className="mt-4 w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 text-left">
+                <div className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-zinc-950">
+                  <CalendarPlus className="h-4 w-4 text-zinc-950" />
+                  <span>{t('calendarAddTitle')}</span>
+                </div>
+                <p className="mt-1 text-[11px] leading-relaxed text-zinc-600">
+                  {t('calendarAddDesc')}
+                </p>
+                <div className="mt-2.5 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const pageUrl =
+                        typeof window !== 'undefined' ? window.location.href : undefined;
+                      const ics = buildMatchIcsContent({
+                        uid: reg.id,
+                        title: reg.match.title,
+                        sport: reg.match.sport,
+                        startsAt: reg.match.starts_at,
+                        notes: reg.match.notes,
+                        locationName: reg.match.location_name,
+                        mapUrl: reg.match.map_url,
+                        shortCode: reg.match.short_code,
+                        ticketCode: reg.payment_code,
+                        pageUrl,
+                      });
+                      downloadIcsFile(
+                        `matchmate-${reg.match.short_code}-${reg.payment_code}.ics`,
+                        ics
+                      );
+                    }}
+                    className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-zinc-950 px-3 text-xs font-extrabold text-volt transition hover:opacity-90"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>{t('calendarDownloadIcs')}</span>
+                  </button>
+                  <a
+                    href={buildGoogleCalendarUrl({
+                      uid: reg.id,
+                      title: reg.match.title,
+                      sport: reg.match.sport,
+                      startsAt: reg.match.starts_at,
+                      notes: reg.match.notes,
+                      locationName: reg.match.location_name,
+                      mapUrl: reg.match.map_url,
+                      shortCode: reg.match.short_code,
+                      ticketCode: reg.payment_code,
+                    })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-9 flex-1 items-center justify-center gap-1.5 rounded-xl border border-zinc-300 bg-white px-3 text-xs font-bold text-zinc-800 transition hover:border-zinc-950"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>{t('calendarGoogleBtn')}</span>
+                  </a>
+                </div>
+              </div>
             </div>
           )}
 

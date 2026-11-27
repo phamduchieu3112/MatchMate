@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Check,
   Copy,
+  Image as ImageIcon,
   Pencil,
   QrCode,
   Search,
@@ -17,6 +18,9 @@ import { QrCheckinModal } from '@/components/host/QrCheckinModal';
 import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
 import { ShareMatchModal } from '@/components/host/ShareMatchModal';
 import { EditMatchModal } from '@/components/host/EditMatchModal';
+import { RosterPosterModal } from '@/components/host/RosterPosterModal';
+import { SplitBillPanel } from '@/components/host/SplitBillPanel';
+import { MiniScoreboardTab } from '@/components/shared/MiniScoreboardTab';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import {
   formatSlotLabel,
@@ -34,6 +38,8 @@ import type { PublicMatch } from '@/lib/types';
 export interface HostMatchRow extends PublicMatch {
   court_fee_total: number;
   shuttle_fee_total: number;
+  extras_fee_total?: number;
+  shuttle_count?: number;
 }
 
 export interface HostRegistrationRow {
@@ -95,15 +101,16 @@ export function MatchDetailTabs({
 }: MatchDetailTabsProps) {
   const { locale, t } = useLocale();
   const router = useRouter();
-  const [tab, setTab] = useState<'roster' | 'payments' | 'refunds' | 'summary'>(
-    'roster'
-  );
+  const [tab, setTab] = useState<
+    'roster' | 'scoreboard' | 'payments' | 'refunds' | 'summary'
+  >('roster');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [posterModalOpen, setPosterModalOpen] = useState(false);
 
   // Roster filter/search
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,9 +128,7 @@ export function MatchDetailTabs({
   const [assignTarget, setAssignTarget] = useState<Record<string, string>>({});
   const [refundNotes, setRefundNotes] = useState<Record<string, string>>({});
 
-  // Cost calculator
-  const [courtFee, setCourtFee] = useState(match.court_fee_total);
-  const [shuttleFee, setShuttleFee] = useState(match.shuttle_fee_total);
+  // Summary copy state
   const [copiedSummary, setCopiedSummary] = useState(false);
 
   const runAction = async (url: string, body?: unknown) => {
@@ -170,10 +175,6 @@ export function MatchDetailTabs({
   const totalRevenue = registrations
     .filter((r) => r.status === 'confirmed')
     .reduce((acc, r) => acc + r.amount_paid, 0);
-  const totalCost = courtFee + shuttleFee;
-  const activeSlotCount = confirmedAndPending.reduce((acc, r) => acc + r.slots, 0);
-  const suggestedFeePerSlot =
-    activeSlotCount > 0 ? Math.ceil(totalCost / activeSlotCount / 1000) * 1000 : 0;
 
   const filteredRegistrations = registrations.filter((r) => {
     if (statusFilter !== 'all' && r.status !== statusFilter) return false;
@@ -361,11 +362,12 @@ export function MatchDetailTabs({
         </p>
       )}
 
-      {/* Pill-style 4-Tab Navigation */}
+      {/* Pill-style 5-Tab Navigation */}
       <div className="flex flex-wrap gap-1.5 rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         {(
           [
             ['roster', t('hostTabRoster')],
+            ['scoreboard', t('tabScoreboard')],
             ['payments', t('hostTabPayments')],
             ['refunds', t('hostTabRefunds')],
             ['summary', t('hostTabSummary')],
@@ -630,6 +632,20 @@ export function MatchDetailTabs({
         </div>
       )}
 
+      {/* TAB 1.5: SCOREBOARD */}
+      {tab === 'scoreboard' && (
+        <MiniScoreboardTab
+          matchId={match.id}
+          shortCode={match.short_code}
+          matchTitle={match.title}
+          sport={match.sport}
+          dateTimeText={formatMatchDateTimeRange(match.starts_at, match.notes, locale)}
+          locationName={match.location_name}
+          participants={registrations}
+          isHost
+        />
+      )}
+
       {/* TAB 2: PAYMENTS */}
       {tab === 'payments' && (
         <div className="space-y-5">
@@ -861,120 +877,65 @@ export function MatchDetailTabs({
         </div>
       )}
 
-      {/* TAB 4: SUMMARY & CALCULATOR */}
+      {/* TAB 4: SUMMARY, POSTER & SPLIT BILL */}
       {tab === 'summary' && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-5">
           <div className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
                 {t('hostTabSummary')}
               </h2>
-              <button
-                type="button"
-                onClick={() => void copySummary()}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-volt px-3 py-1.5 text-xs font-extrabold text-zinc-950 transition hover:bg-volt-hover"
-              >
-                {copiedSummary ? (
-                  <>
-                    <Check className="h-3.5 w-3.5" />
-                    <span>{t('copied')}</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="h-3.5 w-3.5" />
-                    <span>{t('hostCopyZalo')}</span>
-                  </>
-                )}
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPosterModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-950 px-3 py-1.5 text-xs font-extrabold text-volt transition hover:opacity-90 dark:border dark:border-volt/40"
+                >
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  <span>{t('hostDownloadPosterBtn')}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void copySummary()}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-volt px-3 py-1.5 text-xs font-extrabold text-zinc-950 transition hover:bg-volt-hover"
+                >
+                  {copiedSummary ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      <span>{t('copied')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>{t('hostCopyZalo')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             <pre className="whitespace-pre-wrap rounded-xl border border-zinc-200 bg-zinc-50 p-3.5 font-sans text-xs leading-relaxed text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200">
               {zaloSummary}
             </pre>
           </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void runAction(`/api/host/matches/${match.id}/update`, {
-                court_fee_total: courtFee,
-                shuttle_fee_total: shuttleFee,
-              });
-            }}
-            className="space-y-3.5 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-          >
-            <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
-              {t('hostCostCalcTitle')}
-            </h2>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
-                {t('hostCourtFee')}
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={courtFee}
-                onChange={(e) => setCourtFee(Number(e.target.value))}
-                className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
-                {t('hostShuttleFee')}
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={shuttleFee}
-                onChange={(e) => setShuttleFee(Number(e.target.value))}
-                className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt"
-              />
-            </div>
-
-            <div className="space-y-1.5 rounded-xl border border-zinc-200 bg-zinc-50 p-3.5 text-sm dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  {t('hostTotalCost')}
-                </span>
-                <strong className="tabular-nums text-zinc-950 dark:text-white">
-                  {formatVnd(totalCost, locale)}
-                </strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  {t('hostConfirmedRevenue')}
-                </span>
-                <strong className="tabular-nums text-emerald-600 dark:text-emerald-400">
-                  {formatVnd(totalRevenue, locale)}
-                </strong>
-              </div>
-              <div className="flex justify-between border-t border-zinc-200 pt-1.5 dark:border-zinc-800">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  {t('hostNetBalance')}
-                </span>
-                <strong className="tabular-nums text-zinc-950 dark:text-white">
-                  {formatVnd(totalRevenue - totalCost, locale)}
-                </strong>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">
-                  {t('hostSuggestedFee', { count: activeSlotCount })}
-                </span>
-                <strong className="tabular-nums text-zinc-950 dark:text-volt">
-                  {formatVnd(suggestedFeePerSlot, locale)}
-                </strong>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={busy}
-              className="h-10 w-full rounded-xl bg-zinc-950 text-xs font-extrabold uppercase tracking-wide text-volt transition hover:opacity-90 disabled:opacity-60 dark:bg-volt dark:text-zinc-950"
-            >
-              {t('hostSaveCosts')}
-            </button>
-          </form>
+          <SplitBillPanel
+            matchId={match.id}
+            initialCourtFee={match.court_fee_total}
+            initialShuttleFee={match.shuttle_fee_total}
+            initialShuttleCount={match.shuttle_count ?? 0}
+            initialExtrasFee={match.extras_fee_total ?? 0}
+            registrations={registrations}
+            onUpdated={() => router.refresh()}
+          />
         </div>
       )}
+      <RosterPosterModal
+        open={posterModalOpen}
+        onClose={() => setPosterModalOpen(false)}
+        match={match}
+        registrations={registrations}
+        siteUrl={siteUrl}
+      />
       <EditMatchModal
         open={editModalOpen}
         match={match}

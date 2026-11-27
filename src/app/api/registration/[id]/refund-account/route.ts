@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { dispatchHostNotification } from '@/lib/notifications';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { enforceRateLimits, normalizeIpForRateLimit } from '@/lib/rate-limit';
 import {
@@ -71,6 +72,42 @@ export async function POST(
         { error: result.error ?? 'update_rejected' },
         { status: result.error === 'unauthorized' ? 401 : 400 }
       );
+    }
+
+    try {
+      const { data: regInfo } = await admin
+        .from('registrations')
+        .select('match_id, display_name, slots, amount_paid')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (regInfo) {
+        const ri = regInfo as {
+          match_id: string;
+          display_name: string;
+          slots: number;
+          amount_paid: number;
+        };
+        const { data: mInfo } = await admin
+          .from('matches')
+          .select('host_id, title, short_code')
+          .eq('id', ri.match_id)
+          .maybeSingle();
+
+        if (mInfo && ri.amount_paid > 0) {
+          const mi = mInfo as { host_id: string; title: string; short_code: string };
+          await dispatchHostNotification(admin, mi.host_id, {
+            type: 'refund_request',
+            matchTitle: mi.title,
+            shortCode: mi.short_code,
+            playerName: ri.display_name,
+            slots: ri.slots,
+            detail: `Cập nhật STK hoàn tiền: ${accountInfo}`,
+          });
+        }
+      }
+    } catch {
+      // Never block refund-account save
     }
 
     return NextResponse.json(result, { status: 200 });

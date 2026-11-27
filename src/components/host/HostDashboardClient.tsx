@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
   ArrowRight,
+  Bell,
   CopyPlus,
   Landmark,
   LogOut,
@@ -19,6 +20,7 @@ import { formatMatchDateTimeRange, formatVnd } from '@/lib/format';
 import type { PublicMatch } from '@/lib/types';
 import { MatchMateLogo } from '@/components/MatchMateLogo';
 import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
+import { NotificationSettingsModal } from '@/components/host/NotificationSettingsModal';
 import { ShareMatchModal } from '@/components/host/ShareMatchModal';
 
 export interface HostPaymentStatusProp {
@@ -47,6 +49,7 @@ export function HostDashboardClient({
   const [cloningId, setCloningId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PublicMatch | null>(null);
   const [shareTarget, setShareTarget] = useState<PublicMatch | null>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogout = async () => {
@@ -110,7 +113,15 @@ export function HostDashboardClient({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setNotifOpen(true)}
+            className="inline-flex h-10 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 text-xs font-bold text-zinc-700 shadow-sm transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-volt"
+          >
+            <Bell className="h-3.5 w-3.5" />
+            <span>{t('hostNotifBtn')}</span>
+          </button>
           <Link
             href="/host/new"
             className="inline-flex h-10 items-center gap-1.5 rounded-full bg-volt px-4 text-xs font-extrabold uppercase tracking-wide text-zinc-950 shadow-sm transition hover:bg-volt-hover"
@@ -305,6 +316,11 @@ export function HostDashboardClient({
           })}
         </div>
       )}
+
+      <NotificationSettingsModal
+        open={notifOpen}
+        onClose={() => setNotifOpen(false)}
+      />
 
       {shareTarget && (
         <ShareMatchModal

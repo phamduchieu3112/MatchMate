@@ -160,6 +160,20 @@ export async function POST(
     }
     updates.shuttle_fee_total = shuttleFee;
   }
+  if (body.extras_fee_total !== undefined) {
+    const extrasFee = Number(body.extras_fee_total);
+    if (!Number.isInteger(extrasFee) || extrasFee < 0 || extrasFee > 100_000_000) {
+      return NextResponse.json({ error: 'invalid_extras_fee' }, { status: 400 });
+    }
+    updates.extras_fee_total = extrasFee;
+  }
+  if (body.shuttle_count !== undefined) {
+    const shuttleCount = Number(body.shuttle_count);
+    if (!Number.isInteger(shuttleCount) || shuttleCount < 0 || shuttleCount > 500) {
+      return NextResponse.json({ error: 'invalid_shuttle_count' }, { status: 400 });
+    }
+    updates.shuttle_count = shuttleCount;
+  }
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'no_updates' }, { status: 400 });

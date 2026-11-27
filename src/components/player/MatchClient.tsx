@@ -26,6 +26,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { PublicMatch, PublicParticipantsPayload } from '@/lib/types';
 import { MyBookingsBanner } from '@/components/player/MyBookingsBanner';
 import { BookingSheet } from '@/components/player/BookingSheet';
+import { MiniScoreboardTab } from '@/components/shared/MiniScoreboardTab';
 
 interface MatchClientProps {
   initialMatch: PublicMatch;
@@ -43,6 +44,7 @@ export function MatchClient({
   const [selectedSlots, setSelectedSlots] = useState(1);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [policyOpen, setPolicyOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'info' | 'scoreboard'>('info');
 
   const refreshParticipants = useCallback(async () => {
     try {
@@ -327,7 +329,45 @@ export function MatchClient({
         </div>
       </section>
 
-      {/* Large Slot Selector Chips (up to 4 quick chips + custom selector if match allows > 4) */}
+      {/* Player Tab Switcher: Details & Roster vs Live Mini Scoreboard */}
+      <div className="flex gap-1.5 rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <button
+          type="button"
+          onClick={() => setActiveTab('info')}
+          className={`flex-1 rounded-xl px-3 py-2 text-xs font-extrabold uppercase tracking-wide transition ${
+            activeTab === 'info'
+              ? 'bg-volt text-zinc-950 shadow-sm'
+              : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'
+          }`}
+        >
+          {t('tabInfoRoster')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('scoreboard')}
+          className={`flex-1 rounded-xl px-3 py-2 text-xs font-extrabold uppercase tracking-wide transition ${
+            activeTab === 'scoreboard'
+              ? 'bg-volt text-zinc-950 shadow-sm'
+              : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'
+          }`}
+        >
+          {t('tabScoreboard')}
+        </button>
+      </div>
+
+      {activeTab === 'scoreboard' ? (
+        <MiniScoreboardTab
+          matchId={match.id}
+          shortCode={match.short_code}
+          matchTitle={match.title}
+          sport={match.sport}
+          dateTimeText={formatMatchDateTimeRange(match.starts_at, match.notes, locale)}
+          locationName={match.location_name}
+          participants={participantsData.participants}
+        />
+      ) : (
+        <>
+          {/* Large Slot Selector Chips (up to 4 quick chips + custom selector if match allows > 4) */}
       {isBookable && (
         <section className="space-y-2.5">
           <div className="flex items-center justify-between">
@@ -567,6 +607,8 @@ export function MatchClient({
           </div>
         )}
       </section>
+        </>
+      )}
 
       {/* Sticky Bottom CTA Bar */}
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200/80 bg-zinc-100/90 px-4 py-3 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/90">
