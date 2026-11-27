@@ -15,7 +15,12 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import { translateMatchStatus } from '@/lib/i18n/helpers';
-import { formatMatchDateTime, formatVnd } from '@/lib/format';
+import {
+  formatMatchDateTime,
+  formatMatchDateTimeRange,
+  formatVnd,
+  stripTimeRangeFromNotes,
+} from '@/lib/format';
 import { getAvatarTone, getInitials } from '@/lib/ui-helpers';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { PublicMatch, PublicParticipantsPayload } from '@/lib/types';
@@ -178,7 +183,7 @@ export function MatchClient({
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 shrink-0 text-zinc-950 dark:text-volt" />
                 <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  {formatMatchDateTime(match.starts_at, locale)}
+                  {formatMatchDateTimeRange(match.starts_at, match.notes, locale)}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
@@ -212,42 +217,56 @@ export function MatchClient({
             </div>
           </div>
 
-          {(match.level || match.court_numbers || match.courts || match.notes) && (
-            <div className="mt-4 space-y-2 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-3.5 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
-              <div className="flex flex-wrap gap-3">
-                {match.level && (
-                  <span className="inline-flex items-center gap-1.5 font-semibold">
-                    <Sparkles className="h-3.5 w-3.5 text-zinc-950 dark:text-volt" />
-                    <span className="text-zinc-500 dark:text-zinc-400">
-                      {t('level')}:
-                    </span>
-                    <span className="text-zinc-950 dark:text-white">
-                      {match.level}
-                    </span>
-                  </span>
+          {(() => {
+            const displayNotes = stripTimeRangeFromNotes(match.notes);
+            if (!match.level && !match.court_numbers && !match.courts && !displayNotes) {
+              return null;
+            }
+            return (
+              <div className="mt-4 space-y-2 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-3.5 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
+                {(match.level || match.court_numbers || match.courts) && (
+                  <div className="flex flex-wrap gap-3">
+                    {match.level && (
+                      <span className="inline-flex items-center gap-1.5 font-semibold">
+                        <Sparkles className="h-3.5 w-3.5 text-zinc-950 dark:text-volt" />
+                        <span className="text-zinc-500 dark:text-zinc-400">
+                          {t('level')}:
+                        </span>
+                        <span className="text-zinc-950 dark:text-white">
+                          {match.level}
+                        </span>
+                      </span>
+                    )}
+                    {(match.court_numbers || match.courts) && (
+                      <span className="inline-flex items-center gap-1.5 font-semibold">
+                        <Layers className="h-3.5 w-3.5 text-zinc-950 dark:text-volt" />
+                        <span className="text-zinc-500 dark:text-zinc-400">
+                          {match.court_numbers ? t('courtNumberLabel') : t('courts')}:
+                        </span>
+                        <span className="tabular-nums text-zinc-950 dark:text-white">
+                          {match.court_numbers || match.courts}
+                        </span>
+                      </span>
+                    )}
+                  </div>
                 )}
-                {(match.court_numbers || match.courts) && (
-                  <span className="inline-flex items-center gap-1.5 font-semibold">
-                    <Layers className="h-3.5 w-3.5 text-zinc-950 dark:text-volt" />
-                    <span className="text-zinc-500 dark:text-zinc-400">
-                      {match.court_numbers ? t('courtNumberLabel') : t('courts')}:
-                    </span>
-                    <span className="tabular-nums text-zinc-950 dark:text-white">
-                      {match.court_numbers || match.courts}
-                    </span>
-                  </span>
+                {displayNotes && (
+                  <p
+                    className={`whitespace-pre-line text-xs leading-relaxed ${
+                      match.level || match.court_numbers || match.courts
+                        ? 'border-t border-zinc-200 pt-2 dark:border-zinc-800'
+                        : ''
+                    }`}
+                  >
+                    <strong className="text-zinc-800 dark:text-zinc-200">
+                      {t('notes')}:
+                    </strong>{' '}
+                    {displayNotes}
+                  </p>
                 )}
               </div>
-              {match.notes && (
-                <p className="whitespace-pre-line border-t border-zinc-200 pt-2 text-xs leading-relaxed dark:border-zinc-800">
-                  <strong className="text-zinc-800 dark:text-zinc-200">
-                    {t('notes')}:
-                  </strong>{' '}
-                  {match.notes}
-                </p>
-              )}
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* Perforated Ticket Divider with Side Notches */}

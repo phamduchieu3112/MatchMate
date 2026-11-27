@@ -27,7 +27,7 @@ import {
   translateRefundStatus,
   translateRegStatus,
 } from '@/lib/i18n/helpers';
-import { formatMatchDateTime, formatVnd } from '@/lib/format';
+import { formatMatchDateTimeRange, formatVnd } from '@/lib/format';
 import { getAvatarTone, getInitials } from '@/lib/ui-helpers';
 import type { PublicMatch } from '@/lib/types';
 
@@ -189,7 +189,7 @@ export function MatchDetailTabs({
   const matchLink = `${siteUrl.replace(/\/$/, '')}/keo/${match.short_code}`;
   const zaloSummary = [
     `${match.sport.toUpperCase()} · ${match.title} (#${match.short_code})`,
-    `${formatMatchDateTime(match.starts_at, locale)}`,
+    `${formatMatchDateTimeRange(match.starts_at, match.notes, locale)}`,
     `${match.location_name}${match.court_numbers ? ` · ${t('courtNumberLabel')}: ${match.court_numbers}` : ''}`,
     `${formatVnd(match.fee_per_slot, locale)}/slot (${match.slots_taken}/${match.max_slots})`,
     '',
@@ -307,7 +307,7 @@ export function MatchDetailTabs({
             {match.title}
           </h1>
           <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-            {formatMatchDateTime(match.starts_at, locale)} · {match.location_name}
+            {formatMatchDateTimeRange(match.starts_at, match.notes, locale)} · {match.location_name}
             {match.court_numbers
               ? ` · ${t('courtNumberLabel')}: ${match.court_numbers}`
               : ''}

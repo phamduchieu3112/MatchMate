@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import type { PublicMatch, PublicParticipantsPayload } from '@/lib/types';
 import { isValidShortCode } from '@/lib/validation';
+import { formatMatchDateTimeRange } from '@/lib/format';
 import { MatchClient } from '@/components/player/MatchClient';
 
 export const revalidate = 30;
@@ -61,13 +62,7 @@ export async function generateMetadata({
   }
 
   const { match, participants } = result;
-  const timeStr = new Intl.DateTimeFormat('vi-VN', {
-    timeZone: 'Asia/Ho_Chi_Minh',
-    weekday: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date(match.starts_at));
+  const timeStr = formatMatchDateTimeRange(match.starts_at, match.notes, 'vi');
 
   const title = `${match.title} · ${timeStr} · còn ${participants.available_slots}/${match.max_slots} chỗ`;
   return {

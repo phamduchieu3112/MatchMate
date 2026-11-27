@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { createClient } from '@supabase/supabase-js';
 import { isValidShortCode } from '@/lib/validation';
+import { extractMatchTimeRange } from '@/lib/format';
 import type { PublicParticipantsPayload } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -8,7 +9,7 @@ export const revalidate = 60;
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-function formatShortViDayTime(iso: string): string {
+function formatShortViDayTime(iso: string, notes?: string | null): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
   const parts = new Intl.DateTimeFormat('vi-VN', {
@@ -27,7 +28,11 @@ function formatShortViDayTime(iso: string): string {
   const hour = parts.find((p) => p.type === 'hour')?.value ?? '';
   const minute = parts.find((p) => p.type === 'minute')?.value ?? '';
   const compactDay = weekday.replace('Thứ ', 'T').replace('Chủ Nhật', 'CN');
-  return `${compactDay} ${day}/${month} · ${hour}:${minute}`.trim();
+  const parsedRange = extractMatchTimeRange(notes);
+  const timeText = parsedRange
+    ? `${hour}:${minute} – ${parsedRange.endTime}`
+    : `${hour}:${minute}`;
+  return `${compactDay} ${day}/${month} · ${timeText}`.trim();
 }
 
 export default async function OpenGraphImage({
@@ -56,7 +61,7 @@ export default async function OpenGraphImage({
 
     const { data: match } = await supabase
       .from('matches')
-      .select('id, sport, title, starts_at, location_name, fee_per_slot, max_slots, slots_taken')
+      .select('id, sport, title, starts_at, location_name, fee_per_slot, max_slots, slots_taken, notes')
       .eq('short_code', upperCode)
       .maybeSingle();
 
@@ -69,7 +74,7 @@ export default async function OpenGraphImage({
       maxSlots = match.max_slots;
       available = payload?.available_slots ?? Math.max(maxSlots - taken, 0);
 
-      const when = formatShortViDayTime(match.starts_at);
+      const when = formatShortViDayTime(match.starts_at, match.notes);
       sport = String(match.sport || 'SPORT').toUpperCase();
       title = match.title.toUpperCase();
       subtitle = `${when} · ${match.location_name}`;

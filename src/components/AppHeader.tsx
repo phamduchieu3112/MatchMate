@@ -1,16 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { Monitor, Moon, Sun } from 'lucide-react';
+import { Monitor, Moon, ShieldCheck, Sun } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import { MatchMateLogo } from '@/components/MatchMateLogo';
 
 export function AppHeader() {
+  const pathname = usePathname();
   const { theme, systemTheme, setTheme } = useTheme();
   const { locale, setLocale, t } = useLocale();
   const [mounted, setMounted] = useState(false);
+  const isHostRoute = pathname?.startsWith('/host');
 
   useEffect(() => {
     setMounted(true);
@@ -61,7 +64,18 @@ export function AppHeader() {
           <MatchMateLogo variant="full" size="sm" />
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Compact Host Portal button */}
+          {!isHostRoute && (
+            <Link
+              href="/host"
+              className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full border border-zinc-900/10 bg-zinc-950 px-2.5 text-xs font-bold text-volt shadow-sm transition hover:opacity-90 dark:border-volt/30 dark:bg-volt/15 dark:text-volt dark:hover:bg-volt/25 sm:px-3"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+              <span>{t('hostLink')}</span>
+            </Link>
+          )}
+
           {/* Compact segmented VI | EN pill toggle */}
           <div
             role="group"

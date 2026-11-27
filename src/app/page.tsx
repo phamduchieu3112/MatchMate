@@ -2,12 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import {
   ArrowRight,
   Clock,
   QrCode,
-  ShieldCheck,
   Ticket,
   UserCheck,
   Zap,
@@ -120,27 +118,6 @@ export default function HomePage() {
 
       {/* My Recent Bookings */}
       <MyBookingsBanner variant="section" />
-
-      {/* Subtle Host Portal Link */}
-      <Link
-        href="/host"
-        className="group flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-5 py-4 shadow-sm transition hover:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-volt"
-      >
-        <div className="flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-950 text-volt dark:bg-zinc-800">
-            <ShieldCheck className="h-5 w-5" />
-          </span>
-          <div>
-            <p className="text-sm font-extrabold uppercase tracking-tight text-zinc-950 dark:text-white">
-              {t('hostLink')}
-            </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {t('homeHostCtaSub')}
-            </p>
-          </div>
-        </div>
-        <ArrowRight className="h-4 w-4 text-zinc-400 transition group-hover:translate-x-1 group-hover:text-zinc-950 dark:group-hover:text-volt" />
-      </Link>
     </div>
   );
 }

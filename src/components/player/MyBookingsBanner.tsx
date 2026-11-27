@@ -40,6 +40,33 @@ export function saveStoredBooking(entry: StoredBookingRef) {
   }
 }
 
+export function removeStoredBooking(registrationId: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const current = readStoredBookings();
+    const next = current.filter((item) => item.registrationId !== registrationId);
+    if (next.length !== current.length) {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    }
+  } catch {
+    // Ignore storage failures
+  }
+}
+
+export function retainStoredBookings(validRegistrationIds: Set<string>): StoredBookingRef[] {
+  if (typeof window === 'undefined') return [];
+  const current = readStoredBookings();
+  const next = current.filter((item) => validRegistrationIds.has(item.registrationId));
+  if (next.length !== current.length) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // Ignore storage failures
+    }
+  }
+  return next;
+}
+
 interface MyBookingsBannerProps {
   filterMatchId?: string;
   variant?: 'banner' | 'section';
@@ -53,10 +80,59 @@ export function MyBookingsBanner({
   const [items, setItems] = useState<StoredBookingRef[]>([]);
 
   useEffect(() => {
-    const all = readStoredBookings();
-    setItems(
-      filterMatchId ? all.filter((b) => b.matchId === filterMatchId) : all
-    );
+    let active = true;
+
+    const applyFilter = (list: StoredBookingRef[]) =>
+      filterMatchId ? list.filter((b) => b.matchId === filterMatchId) : list;
+
+    const syncBookings = async () => {
+      const all = readStoredBookings();
+      if (!active) return;
+      setItems(applyFilter(all));
+
+      if (all.length === 0) return;
+
+      try {
+        const res = await fetch('/api/bookings/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+          body: JSON.stringify({
+            bookings: all.map((b) => ({
+              matchId: b.matchId,
+              registrationId: b.registrationId,
+            })),
+          }),
+        });
+        if (!res.ok || !active) return;
+        const data = (await res.json()) as { validRegistrationIds?: string[] };
+        if (!Array.isArray(data.validRegistrationIds) || !active) return;
+
+        const validSet = new Set(data.validRegistrationIds);
+        const synced = retainStoredBookings(validSet);
+        if (active) {
+          setItems(applyFilter(synced));
+        }
+      } catch {
+        // Keep cached bookings if offline/transient error
+      }
+    };
+
+    void syncBookings();
+
+    const onVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        void syncBookings();
+      }
+    };
+    window.addEventListener('focus', onVisibilityOrFocus);
+    document.addEventListener('visibilitychange', onVisibilityOrFocus);
+
+    return () => {
+      active = false;
+      window.removeEventListener('focus', onVisibilityOrFocus);
+      document.removeEventListener('visibilitychange', onVisibilityOrFocus);
+    };
   }, [filterMatchId]);
 
   if (items.length === 0) return null;

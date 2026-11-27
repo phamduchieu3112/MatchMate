@@ -89,6 +89,7 @@ export interface MyRegistrationPayload {
     map_url: string | null;
     status: MatchStatus;
     cancel_cutoff_hours: number;
+    notes?: string | null;
   };
 }
 

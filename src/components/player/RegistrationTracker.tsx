@@ -23,7 +23,8 @@ import {
   translateRefundStatus,
   translateRegStatus,
 } from '@/lib/i18n/helpers';
-import { formatMatchDateTime, formatVnd } from '@/lib/format';
+import { formatMatchDateTimeRange, formatVnd } from '@/lib/format';
+import { removeStoredBooking } from '@/components/player/MyBookingsBanner';
 import type { MyRegistrationPayload } from '@/lib/types';
 
 export function RegistrationTracker({ id }: { id: string }) {
@@ -50,6 +51,7 @@ export function RegistrationTracker({ id }: { id: string }) {
     try {
       const res = await fetch(`/api/registration/${id}`, { cache: 'no-store' });
       if (res.status === 401 || res.status === 400) {
+        removeStoredBooking(id);
         setUnauthorized(true);
         setLoading(false);
         return;
@@ -346,7 +348,7 @@ export function RegistrationTracker({ id }: { id: string }) {
                 {reg.display_name}
               </strong>{' '}
               · {formatSlotLabel(reg.slots, t)} ·{' '}
-              {formatMatchDateTime(reg.match.starts_at, locale)}
+              {formatMatchDateTimeRange(reg.match.starts_at, reg.match.notes, locale)}
             </p>
             {reg.payment_method !== 'none' && (
               <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">

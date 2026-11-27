@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import { translateMatchStatus } from '@/lib/i18n/helpers';
-import { formatMatchDateTime, formatVnd } from '@/lib/format';
+import { formatMatchDateTimeRange, formatVnd } from '@/lib/format';
 import type { PublicMatch } from '@/lib/types';
 import { MatchMateLogo } from '@/components/MatchMateLogo';
 import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
@@ -252,7 +252,7 @@ export function HostDashboardClient({
                   </Link>
 
                   <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-                    {formatMatchDateTime(m.starts_at, locale)} · {m.location_name}
+                    {formatMatchDateTimeRange(m.starts_at, m.notes, locale)} · {m.location_name}
                   </p>
 
                   <div className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">

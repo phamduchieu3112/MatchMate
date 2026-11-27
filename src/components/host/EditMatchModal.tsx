@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
+import {
+  composeNotesWithTimeRange,
+  extractMatchTimeRange,
+  stripTimeRangeFromNotes,
+} from '@/lib/format';
 import type { PublicMatch } from '@/lib/types';
 
 interface DateTimeParts {
@@ -59,6 +64,25 @@ function partsToVietnamIso(p: DateTimeParts): string {
   return `${p.year}-${pad2(p.month)}-${pad2(safeDay)}T${pad2(p.hour)}:${pad2(p.minute)}:00+07:00`;
 }
 
+function getInitialEndTime(
+  startParts: DateTimeParts,
+  notes: string | null
+): { hour: number; minute: number } {
+  const parsed = extractMatchTimeRange(notes);
+  if (parsed) {
+    const [eh, em] = parsed.endTime.split(':').map(Number);
+    return { hour: eh, minute: em };
+  }
+  const d = new Date(
+    startParts.year,
+    startParts.month - 1,
+    startParts.day,
+    startParts.hour,
+    startParts.minute + 120
+  );
+  return { hour: d.getHours(), minute: d.getMinutes() };
+}
+
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTE_OPTIONS = Array.from({ length: 12 }, (_, i) => i * 5);
 
@@ -80,6 +104,12 @@ export function EditMatchModal({
   const [startParts, setStartParts] = useState<DateTimeParts>(() =>
     isoToVietnamParts(match.starts_at)
   );
+  const [endHour, setEndHour] = useState(() =>
+    getInitialEndTime(isoToVietnamParts(match.starts_at), match.notes).hour
+  );
+  const [endMinute, setEndMinute] = useState(() =>
+    getInitialEndTime(isoToVietnamParts(match.starts_at), match.notes).minute
+  );
   const [lockParts, setLockParts] = useState<DateTimeParts>(() =>
     isoToVietnamParts(match.lock_at)
   );
@@ -93,15 +123,19 @@ export function EditMatchModal({
     match.cancel_cutoff_hours
   );
   const [holdMinutes, setHoldMinutes] = useState(match.hold_minutes);
-  const [notes, setNotes] = useState(match.notes ?? '');
+  const [notes, setNotes] = useState(() => stripTimeRangeFromNotes(match.notes) ?? '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!open) return;
+    const nextStart = isoToVietnamParts(match.starts_at);
+    const nextEnd = getInitialEndTime(nextStart, match.notes);
     setSport(match.sport);
     setTitle(match.title);
-    setStartParts(isoToVietnamParts(match.starts_at));
+    setStartParts(nextStart);
+    setEndHour(nextEnd.hour);
+    setEndMinute(nextEnd.minute);
     setLockParts(isoToVietnamParts(match.lock_at));
     setLocationName(match.location_name);
     setMapUrl(match.map_url ?? '');
@@ -111,7 +145,7 @@ export function EditMatchModal({
     setCourtNumbers(match.court_numbers ?? '');
     setCancelCutoffHours(match.cancel_cutoff_hours);
     setHoldMinutes(match.hold_minutes);
-    setNotes(match.notes ?? '');
+    setNotes(stripTimeRangeFromNotes(match.notes) ?? '');
     setError('');
   }, [open, match]);
 
@@ -191,7 +225,11 @@ export function EditMatchModal({
           court_numbers: courtNumbers.trim() || null,
           cancel_cutoff_hours: Number(cancelCutoffHours),
           hold_minutes: Number(holdMinutes),
-          notes: notes.trim() || null,
+          notes: composeNotesWithTimeRange(
+            `${pad2(startParts.hour)}:${pad2(startParts.minute)}`,
+            `${pad2(endHour)}:${pad2(endMinute)}`,
+            notes
+          ),
         }),
       });
       const payload = (await res.json()) as { error?: string };
@@ -225,6 +263,9 @@ export function EditMatchModal({
   const startMinuteOptions = MINUTE_OPTIONS.includes(startParts.minute)
     ? MINUTE_OPTIONS
     : [...MINUTE_OPTIONS, startParts.minute].sort((a, b) => a - b);
+  const endMinuteOptions = MINUTE_OPTIONS.includes(endMinute)
+    ? MINUTE_OPTIONS
+    : [...MINUTE_OPTIONS, endMinute].sort((a, b) => a - b);
   const lockMinuteOptions = MINUTE_OPTIONS.includes(lockParts.minute)
     ? MINUTE_OPTIONS
     : [...MINUTE_OPTIONS, lockParts.minute].sort((a, b) => a - b);
@@ -370,6 +411,36 @@ export function EditMatchModal({
                   className={selectClass}
                 >
                   {startMinuteOptions.map((m) => (
+                    <option key={m} value={m}>
+                      {pad2(m)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <p className="mb-2 mt-3 text-[11px] font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                {t('endsAt')}
+              </p>
+              <div className="grid max-w-xs grid-cols-2 gap-2">
+                <select
+                  aria-label={t('endsAt')}
+                  value={endHour}
+                  onChange={(e) => setEndHour(Number(e.target.value))}
+                  className={selectClass}
+                >
+                  {HOUR_OPTIONS.map((h) => (
+                    <option key={h} value={h}>
+                      {pad2(h)}h
+                    </option>
+                  ))}
+                </select>
+                <select
+                  aria-label={t('timeMinuteLabel')}
+                  value={endMinute}
+                  onChange={(e) => setEndMinute(Number(e.target.value))}
+                  className={selectClass}
+                >
+                  {endMinuteOptions.map((m) => (
                     <option key={m} value={m}>
                       {pad2(m)}
                     </option>

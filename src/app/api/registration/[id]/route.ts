@@ -39,6 +39,15 @@ export async function GET(
     }
 
     const reg = data as MyRegistrationPayload;
+    const { data: matchMeta } = await admin
+      .from('matches')
+      .select('notes')
+      .eq('id', reg.match_id)
+      .maybeSingle();
+    if (matchMeta && reg.match) {
+      reg.match.notes = matchMeta.notes ?? null;
+    }
+
     const amountRemaining = Math.max(reg.amount_due - reg.net_paid, 0);
 
     let qrUrl: string | null = null;

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
+import { composeNotesWithTimeRange } from '@/lib/format';
 
 interface DateTimeParts {
   year: number;
@@ -174,14 +175,11 @@ export function CreateMatchForm() {
 
     const startTimeStr = `${pad2(startParts.hour)}:${pad2(startParts.minute)}`;
     const endTimeStr = `${pad2(endHour)}:${pad2(endMinute)}`;
-    const timeRangeLabel = `${startTimeStr} - ${endTimeStr}`;
-    const trimmedNotes = notes.trim();
-    const finalNotes =
-      !trimmedNotes.includes(timeRangeLabel) && !title.includes(endTimeStr)
-        ? trimmedNotes
-          ? `${timeRangeLabel} · ${trimmedNotes}`
-          : timeRangeLabel
-        : trimmedNotes || null;
+    const finalNotes = composeNotesWithTimeRange(
+      startTimeStr,
+      endTimeStr,
+      notes
+    );
 
     setSaving(true);
     try {
