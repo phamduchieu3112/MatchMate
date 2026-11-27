@@ -13,6 +13,13 @@ interface NotificationSettingsModalProps {
   onClose: () => void;
 }
 
+interface DeliveryResultItem {
+  channel: 'telegram' | 'discord' | 'zalo';
+  ok: boolean;
+  reason?: string;
+  detail?: string;
+}
+
 export function NotificationSettingsModal({
   open,
   onClose,
@@ -23,6 +30,7 @@ export function NotificationSettingsModal({
   const [testing, setTesting] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
+  const [testResults, setTestResults] = useState<DeliveryResultItem[]>([]);
 
   const [telegramEnabled, setTelegramEnabled] = useState(false);
   const [telegramBotToken, setTelegramBotToken] = useState('');
@@ -43,34 +51,38 @@ export function NotificationSettingsModal({
     refund_request: true,
   });
 
+  const applySettingsToState = (s: HostNotificationSettingsPublic) => {
+    setTelegramEnabled(s.telegram_enabled);
+    setTelegramBotToken('');
+    setTelegramTokenPlaceholder(
+      s.has_telegram_bot_token ? s.telegram_bot_token_masked : '123456:ABC...'
+    );
+    setTelegramChatId(s.telegram_chat_id);
+
+    setDiscordEnabled(s.discord_enabled);
+    setDiscordWebhookUrl('');
+    setDiscordPlaceholder(
+      s.has_discord_webhook_url
+        ? s.discord_webhook_url_masked
+        : 'https://discord.com/api/webhooks/...'
+    );
+
+    setZaloEnabled(s.zalo_enabled);
+    setZaloWebhookUrl(s.zalo_webhook_url);
+    setEvents(s.events);
+  };
+
   useEffect(() => {
     if (!open) return;
     setMsg('');
     setErr('');
+    setTestResults([]);
     setLoading(true);
     void fetch('/api/host/notifications/settings', { cache: 'no-store' })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { settings?: HostNotificationSettingsPublic } | null) => {
         if (!data?.settings) return;
-        const s = data.settings;
-        setTelegramEnabled(s.telegram_enabled);
-        setTelegramBotToken('');
-        setTelegramTokenPlaceholder(
-          s.has_telegram_bot_token ? s.telegram_bot_token_masked : '123456:ABC...'
-        );
-        setTelegramChatId(s.telegram_chat_id);
-
-        setDiscordEnabled(s.discord_enabled);
-        setDiscordWebhookUrl('');
-        setDiscordPlaceholder(
-          s.has_discord_webhook_url
-            ? s.discord_webhook_url_masked
-            : 'https://discord.com/api/webhooks/...'
-        );
-
-        setZaloEnabled(s.zalo_enabled);
-        setZaloWebhookUrl(s.zalo_webhook_url);
-        setEvents(s.events);
+        applySettingsToState(data.settings);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -78,33 +90,71 @@ export function NotificationSettingsModal({
 
   if (!open) return null;
 
+  const mapSaveError = (code: string | undefined, dbCode?: string) => {
+    switch (code) {
+      case 'invalid_telegram_config':
+        return t('hostNotifErrInvalidTelegram');
+      case 'invalid_discord_webhook':
+        return t('hostNotifErrInvalidDiscord');
+      case 'invalid_zalo_webhook':
+        return t('hostNotifErrInvalidZalo');
+      case 'db_permission_denied':
+        return t('hostNotifErrDbPermission');
+      case 'no_channels_configured':
+        return t('hostNotifErrNoChannels');
+      default:
+        return dbCode ? `${t('errGeneric')} (${dbCode})` : t('errGeneric');
+    }
+  };
+
+  const persistSettings = async (): Promise<boolean> => {
+    const res = await fetch('/api/host/notifications/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        telegram_enabled: telegramEnabled,
+        telegram_bot_token: telegramBotToken,
+        telegram_chat_id: telegramChatId,
+        discord_enabled: discordEnabled,
+        discord_webhook_url: discordWebhookUrl,
+        zalo_enabled: zaloEnabled,
+        zalo_webhook_url: zaloWebhookUrl,
+        events,
+      }),
+    });
+
+    const payload = (await res.json().catch(() => ({}))) as {
+      ok?: boolean;
+      error?: string;
+      code?: string;
+      settings?: HostNotificationSettingsPublic;
+    };
+
+    if (!res.ok) {
+      setErr(mapSaveError(payload.error, payload.code));
+      return false;
+    }
+
+    if (payload.settings) {
+      applySettingsToState(payload.settings);
+    } else {
+      setTelegramBotToken('');
+      setDiscordWebhookUrl('');
+    }
+    return true;
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setMsg('');
     setErr('');
+    setTestResults([]);
     setSaving(true);
     try {
-      const res = await fetch('/api/host/notifications/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          telegram_enabled: telegramEnabled,
-          telegram_bot_token: telegramBotToken,
-          telegram_chat_id: telegramChatId,
-          discord_enabled: discordEnabled,
-          discord_webhook_url: discordWebhookUrl,
-          zalo_enabled: zaloEnabled,
-          zalo_webhook_url: zaloWebhookUrl,
-          events,
-        }),
-      });
-      if (!res.ok) {
-        setErr(t('errGeneric'));
-        return;
+      const ok = await persistSettings();
+      if (ok) {
+        setMsg(t('hostNotifSaved'));
       }
-      setMsg(t('hostNotifSaved'));
-      setTelegramBotToken('');
-      setDiscordWebhookUrl('');
     } catch {
       setErr(t('errGeneric'));
     } finally {
@@ -115,13 +165,33 @@ export function NotificationSettingsModal({
   const handleTest = async () => {
     setMsg('');
     setErr('');
+    setTestResults([]);
     setTesting(true);
     try {
+      const saved = await persistSettings();
+      if (!saved) {
+        return;
+      }
+
       const res = await fetch('/api/host/notifications/test', {
         method: 'POST',
       });
-      if (!res.ok) {
-        setErr(t('hostNotifTestFail'));
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+        results?: DeliveryResultItem[];
+      };
+
+      if (Array.isArray(data.results)) {
+        setTestResults(data.results);
+      }
+
+      if (!res.ok || !data.ok) {
+        setErr(
+          data.error === 'no_channels_configured'
+            ? t('hostNotifErrNoChannels')
+            : t('hostNotifTestFail')
+        );
         return;
       }
       setMsg(t('hostNotifTestOk'));
@@ -269,6 +339,26 @@ export function NotificationSettingsModal({
               </p>
             )}
 
+            {testResults.length > 0 && (
+              <ul className="space-y-1 rounded-xl border border-zinc-200 bg-zinc-50 p-2.5 text-[11px] dark:border-zinc-800 dark:bg-zinc-950">
+                {testResults.map((r) => (
+                  <li
+                    key={r.channel}
+                    className={`flex items-center justify-between gap-2 font-semibold ${
+                      r.ok
+                        ? 'text-emerald-700 dark:text-emerald-400'
+                        : 'text-rose-700 dark:text-rose-400'
+                    }`}
+                  >
+                    <span className="uppercase">{r.channel}</span>
+                    <span className="truncate">
+                      {r.ok ? '✓ OK' : `✗ ${r.detail || r.reason || 'failed'}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -281,7 +371,7 @@ export function NotificationSettingsModal({
               </button>
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || testing}
                 className="h-11 flex-1 rounded-xl bg-volt text-xs font-extrabold uppercase tracking-wide text-zinc-950 transition hover:bg-volt-hover disabled:opacity-60"
               >
                 {t('hostNotifSaveBtn')}

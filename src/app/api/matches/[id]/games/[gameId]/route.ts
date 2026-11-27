@@ -46,7 +46,9 @@ export async function PATCH(
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const { data: existing } = await admin
+  const dbClient = auth.hostSupabase ?? admin;
+
+  const { data: existing } = await dbClient
     .from('match_games')
     .select('id, status, sets')
     .eq('id', gameId)
@@ -73,7 +75,12 @@ export async function PATCH(
       ? 'in_progress'
       : existing.status;
 
-  if (existing.status === 'completed' && nextStatus === 'completed' && body.sets !== undefined && auth.actor !== 'host') {
+  if (
+    existing.status === 'completed' &&
+    nextStatus === 'completed' &&
+    body.sets !== undefined &&
+    auth.actor !== 'host'
+  ) {
     return NextResponse.json({ error: 'game_locked' }, { status: 409 });
   }
 
@@ -81,7 +88,7 @@ export async function PATCH(
   const completedAt =
     nextStatus === 'completed' ? new Date().toISOString() : null;
 
-  const { data: updated, error } = await admin
+  const { data: updated, error } = await dbClient
     .from('match_games')
     .update({
       sets,
@@ -97,7 +104,10 @@ export async function PATCH(
     .single();
 
   if (error || !updated) {
-    return NextResponse.json({ error: 'update_failed' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'update_failed', code: error?.code },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({ game: updated }, { status: 200 });
@@ -133,14 +143,19 @@ export async function DELETE(
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  const { error } = await admin
+  const dbClient = auth.hostSupabase ?? admin;
+
+  const { error } = await dbClient
     .from('match_games')
     .delete()
     .eq('id', gameId)
     .eq('match_id', id);
 
   if (error) {
-    return NextResponse.json({ error: 'delete_failed' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'delete_failed', code: error.code },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({ ok: true }, { status: 200 });

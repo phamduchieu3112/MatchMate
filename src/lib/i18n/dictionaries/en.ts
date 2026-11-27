@@ -468,4 +468,12 @@ export const en: Dictionary = {
   hostNotifSaved: 'Notification settings saved.',
   hostNotifTestOk: 'Test notification sent successfully!',
   hostNotifTestFail: 'Test failed. Please verify your token or webhook URL.',
+  hostNotifErrInvalidTelegram:
+    'Invalid Telegram Bot Token or Chat ID (supports numeric IDs or @channel).',
+  hostNotifErrInvalidDiscord:
+    'Discord Webhook URL must start with https://discord.com/api/webhooks/...',
+  hostNotifErrInvalidZalo: 'Zalo Webhook URL must be a valid public HTTPS URL.',
+  hostNotifErrNoChannels: 'Enable and configure at least one channel before testing.',
+  hostNotifErrDbPermission:
+    'Database permission error (42501). Please run migration 010 in Supabase.',
 };

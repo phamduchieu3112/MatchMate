@@ -30,6 +30,7 @@ export interface NotificationDeliveryResult {
   channel: 'telegram' | 'discord' | 'zalo';
   ok: boolean;
   reason?: string;
+  detail?: string;
 }
 
 export interface NotificationAdapter {
@@ -52,11 +53,11 @@ const BLOCKED_HOSTNAME_REGEX =
   /^(localhost|127\.|10\.|192\.168\.|169\.254\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|\[::1\])/i;
 
 export function isValidTelegramBotToken(token: string): boolean {
-  return /^\d{5,15}:[A-Za-z0-9_-]{20,}$/.test(token.trim());
+  return /^\d{4,16}:[A-Za-z0-9_-]{20,100}$/.test(token.trim());
 }
 
 export function isValidTelegramChatId(chatId: string): boolean {
-  return /^-?\d{4,20}$/.test(chatId.trim());
+  return /^(?:-?\d{3,20}|@[A-Za-z][A-Za-z0-9_]{3,31})$/.test(chatId.trim());
 }
 
 export function isValidDiscordWebhookUrl(rawUrl: string): boolean {
@@ -72,7 +73,9 @@ export function isValidDiscordWebhookUrl(rawUrl: string): boolean {
     ) {
       return false;
     }
-    return parsed.pathname.startsWith('/api/webhooks/');
+    return /^\/api(?:\/v\d+)?\/webhooks\/\d+\/[A-Za-z0-9._-]+/.test(
+      parsed.pathname
+    );
   } catch {
     return false;
   }
@@ -136,6 +139,54 @@ export function formatNotificationText(payload: HostNotificationPayload): {
   };
 }
 
+export function escapeTelegramHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+export function formatTelegramHtmlMessage(
+  payload: HostNotificationPayload
+): string {
+  const formatted = formatNotificationText(payload);
+  const lines = [
+    `<b>${escapeTelegramHtml(formatted.title)}</b>`,
+    '',
+    `Buổi chơi: <b>${escapeTelegramHtml(payload.matchTitle)}</b> (<code>#${escapeTelegramHtml(payload.shortCode)}</code>)`,
+  ];
+  if (payload.playerName) {
+    const slotSuffix = payload.slots ? ` (×${payload.slots} slot)` : '';
+    lines.push(
+      `Người chơi: <b>${escapeTelegramHtml(payload.playerName)}</b>${escapeTelegramHtml(slotSuffix)}`
+    );
+  }
+  if (typeof payload.amountVnd === 'number') {
+    lines.push(`Số tiền: <code>${escapeTelegramHtml(formatVndSimple(payload.amountVnd))}</code>`);
+  }
+  if (payload.detail) {
+    lines.push(`Chi tiết: ${escapeTelegramHtml(payload.detail)}`);
+  }
+
+  return lines.join('\n').slice(0, 4096);
+}
+
+async function extractSafeErrorDetail(
+  res: Response,
+  field: 'description' | 'message'
+): Promise<string | undefined> {
+  try {
+    const data = (await res.json()) as Record<string, unknown>;
+    const raw = data?.[field];
+    if (typeof raw === 'string' && raw.trim()) {
+      return raw.trim().slice(0, 120);
+    }
+  } catch {
+    // Ignore non-JSON error body
+  }
+  return undefined;
+}
+
 export const telegramAdapter: NotificationAdapter = {
   channel: 'telegram',
   isConfigured(config) {
@@ -149,8 +200,7 @@ export const telegramAdapter: NotificationAdapter = {
     if (!this.isConfigured(config)) {
       return { channel: 'telegram', ok: false, reason: 'not_configured' };
     }
-    const formatted = formatNotificationText(payload);
-    const text = `${formatted.title}\n\n${formatted.body}`;
+    const text = formatTelegramHtmlMessage(payload);
     try {
       const res = await fetch(
         `https://api.telegram.org/bot${config.telegram_bot_token.trim()}/sendMessage`,
@@ -160,15 +210,23 @@ export const telegramAdapter: NotificationAdapter = {
           body: JSON.stringify({
             chat_id: config.telegram_chat_id.trim(),
             text,
+            parse_mode: 'HTML',
             disable_web_page_preview: true,
           }),
           signal: AbortSignal.timeout(3500),
           cache: 'no-store',
         }
       );
-      return res.ok
-        ? { channel: 'telegram', ok: true }
-        : { channel: 'telegram', ok: false, reason: `http_${res.status}` };
+      if (res.ok) {
+        return { channel: 'telegram', ok: true };
+      }
+      const detail = await extractSafeErrorDetail(res, 'description');
+      return {
+        channel: 'telegram',
+        ok: false,
+        reason: `http_${res.status}`,
+        detail,
+      };
     } catch {
       return { channel: 'telegram', ok: false, reason: 'network_error' };
     }
@@ -193,10 +251,11 @@ export const discordAdapter: NotificationAdapter = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          username: 'MatchMate',
           embeds: [
             {
-              title: formatted.title,
-              description: formatted.body,
+              title: formatted.title.slice(0, 256),
+              description: formatted.body.slice(0, 4096),
               color: formatted.color,
               timestamp: new Date().toISOString(),
             },
@@ -205,9 +264,16 @@ export const discordAdapter: NotificationAdapter = {
         signal: AbortSignal.timeout(3500),
         cache: 'no-store',
       });
-      return res.ok
-        ? { channel: 'discord', ok: true }
-        : { channel: 'discord', ok: false, reason: `http_${res.status}` };
+      if (res.status === 204 || res.ok) {
+        return { channel: 'discord', ok: true };
+      }
+      const detail = await extractSafeErrorDetail(res, 'message');
+      return {
+        channel: 'discord',
+        ok: false,
+        reason: `http_${res.status}`,
+        detail,
+      };
     } catch {
       return { channel: 'discord', ok: false, reason: 'network_error' };
     }

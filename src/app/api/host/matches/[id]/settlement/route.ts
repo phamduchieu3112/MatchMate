@@ -4,7 +4,10 @@ import { requireHostMutation } from '@/lib/host-api';
 import { buildHostPaymentClientBundle, resolveMatchHostPayment } from '@/lib/sepay';
 import { aggregateClubWallet, calculateSplitBill } from '@/lib/split-bill';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getAuthenticatedHost } from '@/lib/supabase/server';
+import {
+  createServerSupabaseClient,
+  getAuthenticatedHost,
+} from '@/lib/supabase/server';
 import type { ClubWalletEntry, MatchSettlementRow } from '@/lib/types';
 import { isValidUuid } from '@/lib/validation';
 
@@ -36,8 +39,9 @@ export async function GET(
   }
 
   try {
+    const supabase = await createServerSupabaseClient();
     const admin = createAdminClient();
-    const { data: matchRow } = await admin
+    const { data: matchRow } = await supabase
       .from('matches')
       .select('id, host_id')
       .eq('id', id)
@@ -48,12 +52,12 @@ export async function GET(
     }
 
     const [settlementRes, walletRes, resolvedHost] = await Promise.all([
-      admin
+      supabase
         .from('match_settlements')
         .select('*')
         .eq('match_id', id)
         .order('created_at', { ascending: true }),
-      admin
+      supabase
         .from('club_wallet_ledger')
         .select('*')
         .eq('host_id', user.id)
@@ -155,7 +159,7 @@ export async function POST(
   }
 
   const admin = createAdminClient();
-  const { data: matchRow } = await admin
+  const { data: matchRow } = await auth.supabase
     .from('matches')
     .select('id, host_id')
     .eq('id', id)
@@ -166,7 +170,7 @@ export async function POST(
   }
 
   // Persist finalized costs on match
-  const { error: matchUpdErr } = await admin
+  const { error: matchUpdErr } = await auth.supabase
     .from('matches')
     .update({
       court_fee_total: courtFee,
@@ -177,17 +181,20 @@ export async function POST(
     .eq('id', id);
 
   if (matchUpdErr) {
-    return NextResponse.json({ error: 'update_failed' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'update_failed', code: matchUpdErr.code },
+      { status: 400 }
+    );
   }
 
   const [regsRes, existingSettlementsRes, resolvedHost] = await Promise.all([
-    admin
+    auth.supabase
       .from('registrations')
       .select('id, display_name, contact, slots, amount_paid, status')
       .eq('match_id', id)
       .eq('status', 'confirmed')
       .order('created_at', { ascending: true }),
-    admin.from('match_settlements').select('*').eq('match_id', id),
+    auth.supabase.from('match_settlements').select('*').eq('match_id', id),
     resolveMatchHostPayment(admin, id),
   ]);
 
@@ -258,16 +265,19 @@ export async function POST(
   });
 
   if (rowsToUpsert.length > 0) {
-    const { error: upsertErr } = await admin
+    const { error: upsertErr } = await auth.supabase
       .from('match_settlements')
       .upsert(rowsToUpsert, { onConflict: 'match_id,registration_id' });
 
     if (upsertErr) {
-      return NextResponse.json({ error: 'settlement_save_failed' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'settlement_save_failed', code: upsertErr.code },
+        { status: 400 }
+      );
     }
   }
 
-  const { data: savedRows } = await admin
+  const { data: savedRows } = await auth.supabase
     .from('match_settlements')
     .select('*')
     .eq('match_id', id)

@@ -466,6 +466,14 @@ export const vi = {
   hostNotifSaved: 'Đã lưu cài đặt thông báo.',
   hostNotifTestOk: 'Đã gửi thông báo thử nghiệm thành công!',
   hostNotifTestFail: 'Gửi thử thất bại. Kiểm tra lại token hoặc webhook URL.',
+  hostNotifErrInvalidTelegram:
+    'Bot Token hoặc Chat ID Telegram không hợp lệ (Chat ID là số dương/âm hoặc @channel).',
+  hostNotifErrInvalidDiscord:
+    'Discord Webhook URL phải bắt đầu bằng https://discord.com/api/webhooks/...',
+  hostNotifErrInvalidZalo: 'Zalo Webhook URL phải sử dụng HTTPS công khai hợp lệ.',
+  hostNotifErrNoChannels: 'Hãy bật và nhập ít nhất 1 kênh (Telegram, Discord hoặc Zalo) để gửi thử.',
+  hostNotifErrDbPermission:
+    'Thiếu quyền database (42501). Vui lòng chạy migration 010 trên Supabase.',
 } as const;
 
 export type Dictionary = { [K in keyof typeof vi]: string };

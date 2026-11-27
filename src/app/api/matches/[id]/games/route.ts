@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { enforceRateLimits, normalizeIpForRateLimit } from '@/lib/rate-limit';
 import {
@@ -22,9 +23,17 @@ export async function GET(
     return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
   }
 
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anonKey) {
+    return NextResponse.json({ games: [] }, { status: 200 });
+  }
+
   try {
-    const admin = createAdminClient();
-    const { data, error } = await admin
+    const supabase = createClient(url, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data, error } = await supabase
       .from('match_games')
       .select(
         'id, match_id, format, team_a_players, team_b_players, sets, winner, status, created_at, completed_at'
@@ -83,7 +92,10 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const format = body.format === 'singles' || body.format === 'doubles' ? (body.format as GameFormat) : null;
+  const format =
+    body.format === 'singles' || body.format === 'doubles'
+      ? (body.format as GameFormat)
+      : null;
   if (!format) {
     return NextResponse.json({ error: 'invalid_format' }, { status: 400 });
   }
@@ -95,7 +107,9 @@ export async function POST(
     return NextResponse.json({ error: 'invalid_sets' }, { status: 400 });
   }
 
-  const { data: confirmedRegs } = await admin
+  const dbClient = auth.hostSupabase ?? admin;
+
+  const { data: confirmedRegs } = await dbClient
     .from('registrations')
     .select('id, display_name, slots, status')
     .eq('match_id', id)
@@ -135,7 +149,7 @@ export async function POST(
   const status = completeNow ? 'completed' : 'in_progress';
   const completedAt = completeNow ? new Date().toISOString() : null;
 
-  const { data: created, error } = await admin
+  const { data: created, error } = await dbClient
     .from('match_games')
     .insert({
       match_id: id,
@@ -153,7 +167,10 @@ export async function POST(
     .single();
 
   if (error || !created) {
-    return NextResponse.json({ error: 'create_failed' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'create_failed', code: error?.code },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({ game: created }, { status: 201 });

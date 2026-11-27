@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireHostMutation } from '@/lib/host-api';
-import { createAdminClient } from '@/lib/supabase/admin';
 import { sanitizeText } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
@@ -18,9 +17,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
   }
 
-  const contact = typeof body.contactNormalized === 'string'
-    ? body.contactNormalized.replace(/[^0-9]/g, '').slice(-9)
-    : '';
+  const contact =
+    typeof body.contactNormalized === 'string'
+      ? body.contactNormalized.replace(/[^0-9]/g, '').slice(-9)
+      : '';
   const playerName = sanitizeText(body.playerName, 120);
   const deltaAmount = Number(body.deltaAmount);
   const note = sanitizeText(body.note, 200) || 'Điều chỉnh số dư ví CLB';
@@ -35,8 +35,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_input' }, { status: 400 });
   }
 
-  const admin = createAdminClient();
-  const { error } = await admin.from('club_wallet_ledger').insert({
+  const { error } = await auth.supabase.from('club_wallet_ledger').insert({
     host_id: auth.user.id,
     contact_normalized: contact,
     player_name: playerName,
@@ -45,7 +44,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (error) {
-    return NextResponse.json({ error: 'wallet_update_failed' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'wallet_update_failed', code: error.code },
+      { status: 400 }
+    );
   }
 
   return NextResponse.json({ ok: true }, { status: 201 });

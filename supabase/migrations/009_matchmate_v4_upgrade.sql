@@ -126,3 +126,13 @@ CREATE POLICY host_notif_host_all ON public.host_notification_settings
   FOR ALL TO authenticated
   USING (public.is_host() AND host_id = auth.uid())
   WITH CHECK (public.is_host() AND host_id = auth.uid());
+
+-- Ensure service_role has full access to all v4 tables (for webhooks, cron, and server-side routes)
+GRANT ALL ON TABLE
+  public.match_games,
+  public.match_settlements,
+  public.club_wallet_ledger,
+  public.host_notification_settings
+TO service_role;
+
+NOTIFY pgrst, 'reload schema';

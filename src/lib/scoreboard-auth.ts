@@ -1,23 +1,31 @@
 import 'server-only';
 import type { NextRequest } from 'next/server';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getAuthenticatedHost } from '@/lib/supabase/server';
+import {
+  createServerSupabaseClient,
+  getAuthenticatedHost,
+} from '@/lib/supabase/server';
 import { isValidUuid } from '@/lib/validation';
 
 export async function authorizeMatchScoreboardAccess(
   request: NextRequest,
   admin: SupabaseClient,
   matchId: string
-): Promise<{ authorized: boolean; actor: 'host' | 'player' | null }> {
+): Promise<{
+  authorized: boolean;
+  actor: 'host' | 'player' | null;
+  hostSupabase?: SupabaseClient;
+}> {
   const { user, isHost } = await getAuthenticatedHost();
   if (user && isHost) {
-    const { data: matchRow } = await admin
+    const hostSupabase = await createServerSupabaseClient();
+    const { data: matchRow } = await hostSupabase
       .from('matches')
       .select('id, host_id')
       .eq('id', matchId)
       .maybeSingle();
     if (matchRow && (matchRow as { host_id: string }).host_id === user.id) {
-      return { authorized: true, actor: 'host' };
+      return { authorized: true, actor: 'host', hostSupabase };
     }
   }
 
