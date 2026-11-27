@@ -82,9 +82,9 @@ export function CreateMatchForm() {
   const [locationName, setLocationName] = useState('');
   const [mapUrl, setMapUrl] = useState('');
   const [level, setLevel] = useState('Y - TBY');
-  const [feePerSlot, setFeePerSlot] = useState(80000);
-  const [maxSlots, setMaxSlots] = useState(1);
-  const [courts, setCourts] = useState(1);
+  const [feePerSlot, setFeePerSlot] = useState(30000);
+  const [maxSlots, setMaxSlots] = useState(8);
+  const [courtNumbers, setCourtNumbers] = useState('');
   const [cancelCutoffHours, setCancelCutoffHours] = useState(12);
   const [holdMinutes, setHoldMinutes] = useState(15);
   const [notes, setNotes] = useState('');
@@ -96,6 +96,11 @@ export function CreateMatchForm() {
     t('sportPickleball'),
     t('sportTennis'),
     t('sportFootball'),
+    t('sportVolleyball'),
+    t('sportBasketball'),
+    t('sportTableTennis'),
+    t('sportBilliards'),
+    t('sportRunning'),
   ];
 
   const currentYear = new Date().getFullYear();
@@ -193,7 +198,7 @@ export function CreateMatchForm() {
           level: level || null,
           fee_per_slot: Number(feePerSlot),
           max_slots: Number(maxSlots),
-          courts: Number(courts),
+          court_numbers: courtNumbers.trim() || null,
           cancel_cutoff_hours: Number(cancelCutoffHours),
           hold_minutes: Number(holdMinutes),
           notes: finalNotes,
@@ -636,7 +641,7 @@ export function CreateMatchForm() {
                   required
                   value={formattedFee}
                   onChange={(e) => handleFeeChange(e.target.value)}
-                  placeholder="50.000"
+                  placeholder="30.000"
                   className="h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 pl-3 pr-14 text-sm font-bold tabular-nums text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
                 />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-md bg-zinc-200 px-2 py-0.5 text-[11px] font-extrabold tracking-wider text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
@@ -658,13 +663,14 @@ export function CreateMatchForm() {
             </div>
 
             <div>
-              <label className={labelClass}>{t('courts')}</label>
+              <label className={labelClass}>{t('fieldCourtNumbers')}</label>
               <input
-                type="number"
-                min={1}
-                value={courts}
-                onChange={(e) => setCourts(Number(e.target.value))}
-                className={`${inputClass} tabular-nums`}
+                type="text"
+                maxLength={80}
+                value={courtNumbers}
+                onChange={(e) => setCourtNumbers(e.target.value)}
+                placeholder={t('fieldCourtNumbersPlaceholder')}
+                className={inputClass}
               />
             </div>
 

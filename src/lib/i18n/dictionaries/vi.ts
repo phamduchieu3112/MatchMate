@@ -96,9 +96,9 @@ export const vi = {
   // Booking sheet
   sheetTitle: 'Đặt slot giữ chỗ',
   fieldName: 'Tên hiển thị / Biệt danh',
-  fieldNamePlaceholder: 'VD: Huy Nguyễn',
+  fieldNamePlaceholder: 'VD: Phạm Đức Hiếu',
   fieldPhone: 'Số điện thoại (9–11 số)',
-  fieldPhonePlaceholder: '0912345678',
+  fieldPhonePlaceholder: '0123456789',
   fieldSlots: 'Số slot (1–4)',
   fieldPin: 'Mã PIN tự hủy (4 chữ số)',
   fieldPinHint:
@@ -194,7 +194,7 @@ export const vi = {
   groupBookingDesc:
     'Nhập tên từng người tham gia bên dưới. Chỉ cần nhập 1 số điện thoại của người đại diện đặt chỗ.',
   groupMemberLabel: 'Tên người chơi #{index}',
-  groupMemberPrimaryPlaceholder: 'VD: Huy Nguyễn (Người đặt chính)',
+  groupMemberPrimaryPlaceholder: 'VD: Phạm Đức Hiếu (Người đặt chính)',
   groupMemberPlaceholder: 'VD: Minh Trần',
   groupLeadPhoneLabel: 'Số điện thoại người đặt (dùng chung cho cả nhóm)',
   errMissingMemberNames: 'Vui lòng nhập đầy đủ tên cho tất cả các slot đã chọn.',
@@ -347,6 +347,21 @@ export const vi = {
   sportPickleball: 'Pickleball',
   sportTennis: 'Tennis',
   sportFootball: 'Bóng đá',
+  sportVolleyball: 'Bóng chuyền',
+  sportBasketball: 'Bóng rổ',
+  sportTableTennis: 'Bóng bàn',
+  sportBilliards: 'Billiards',
+  sportRunning: 'Chạy bộ',
+  fieldCourtNumbers: 'Số thứ tự sân',
+  fieldCourtNumbersPlaceholder: 'VD: 6, 8 (cách nhau bằng dấu phẩy)',
+  courtNumberLabel: 'Sân số',
+  hostEditMatch: 'Chỉnh sửa',
+  hostEditMatchTitle: 'Chỉnh sửa thông tin buổi chơi',
+  hostEditMatchSave: 'Lưu thay đổi',
+  hostEditMatchSaving: 'Đang lưu...',
+  hostEditMatchSaved: 'Đã cập nhật thông tin buổi chơi.',
+  hostEditMatchClose: 'Đóng',
+  errMaxSlotsBelowTaken: 'Tổng số slot không được nhỏ hơn số slot đã đặt ({taken}).',
 } as const;
 
 export type Dictionary = { [K in keyof typeof vi]: string };

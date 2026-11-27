@@ -18,6 +18,7 @@ export interface PublicMatch {
   fee_per_slot: number;
   max_slots: number;
   courts: number | null;
+  court_numbers?: string | null;
   lock_at: string;
   cancel_cutoff_hours: number;
   hold_minutes: number;

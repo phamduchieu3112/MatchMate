@@ -11,7 +11,7 @@ import {
 
 describe('Scalable N-host payment configuration', () => {
   const multiHostJson = JSON.stringify({
-    'PhamDucHieu.Robotic@gmail.com': {
+    'PhamDucHieu.Robotics@gmail.com': {
       bankCode: 'MBBank',
       accountNumber: '0123456789',
       accountName: 'PHAM DUC HIEU',

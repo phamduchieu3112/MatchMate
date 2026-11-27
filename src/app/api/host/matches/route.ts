@@ -30,7 +30,21 @@ export async function POST(request: NextRequest) {
 
   const feePerSlot = Number(body.fee_per_slot);
   const maxSlots = Number(body.max_slots);
-  const courts = body.courts === undefined ? 1 : Number(body.courts);
+  const rawCourtNumbers = sanitizeText(body.court_numbers, 80);
+  const normalizedCourtParts = rawCourtNumbers
+    ? rawCourtNumbers
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+  const courtNumbers =
+    normalizedCourtParts.length > 0 ? normalizedCourtParts.join(', ').slice(0, 80) : null;
+  const courts =
+    normalizedCourtParts.length > 0
+      ? normalizedCourtParts.length
+      : body.courts === undefined
+        ? 1
+        : Number(body.courts);
   const cancelCutoffHours =
     body.cancel_cutoff_hours === undefined ? 12 : Number(body.cancel_cutoff_hours);
   const holdMinutes =
@@ -72,6 +86,7 @@ export async function POST(request: NextRequest) {
         fee_per_slot: feePerSlot,
         max_slots: maxSlots,
         courts,
+        court_numbers: courtNumbers,
         lock_at: body.lock_at,
         cancel_cutoff_hours: cancelCutoffHours,
         hold_minutes: holdMinutes,

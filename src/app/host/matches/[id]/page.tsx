@@ -38,7 +38,7 @@ export default async function HostMatchDetailPage({
     supabase
       .from('matches')
       .select(
-        'id, short_code, sport, title, starts_at, location_name, map_url, level, fee_per_slot, max_slots, courts, lock_at, cancel_cutoff_hours, hold_minutes, status, slots_taken, notes, court_fee_total, shuttle_fee_total, created_at'
+        'id, short_code, sport, title, starts_at, location_name, map_url, level, fee_per_slot, max_slots, courts, court_numbers, lock_at, cancel_cutoff_hours, hold_minutes, status, slots_taken, notes, court_fee_total, shuttle_fee_total, created_at'
       )
       .eq('id', id)
       .single(),

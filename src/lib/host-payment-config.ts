@@ -1,6 +1,6 @@
 import { normalizeBankAccount, verifySePayApiKey } from '@/lib/validation';
 
-export const PRIMARY_HOST_EMAIL = 'phamduchieu.robotic@gmail.com';
+export const PRIMARY_HOST_EMAIL = 'phamduchieu.robotics@gmail.com';
 export const DEFAULT_TRANSFER_PREFIX = 'KEO';
 
 export interface HostPaymentConfig {
@@ -164,7 +164,7 @@ export function getHostPaymentConfigs(
 /**
  * Resolves the payment configuration for a given host email.
  * - If the email exists in HOST_PAYMENT_CONFIGS, returns that isolated config.
- * - Otherwise, falls back to the primary host (phamduchieu.robotic@gmail.com or
+ * - Otherwise, falls back to the primary host (phamduchieu.robotics@gmail.com or
  *   HOST_PAYMENT_FALLBACK_EMAIL) unless HOST_PAYMENT_FALLBACK_MODE=strict.
  */
 export function resolveHostPaymentConfig(

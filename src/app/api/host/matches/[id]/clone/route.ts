@@ -22,7 +22,7 @@ export async function POST(
   const { data: source, error: fetchErr } = await auth.supabase
     .from('matches')
     .select(
-      'sport, title, starts_at, location_name, map_url, level, fee_per_slot, max_slots, courts, lock_at, cancel_cutoff_hours, hold_minutes, notes'
+      'sport, title, starts_at, location_name, map_url, level, fee_per_slot, max_slots, courts, court_numbers, lock_at, cancel_cutoff_hours, hold_minutes, notes'
     )
     .eq('id', id)
     .single();
@@ -45,6 +45,7 @@ export async function POST(
         fee_per_slot: source.fee_per_slot,
         max_slots: source.max_slots,
         courts: source.courts,
+        court_numbers: source.court_numbers,
         lock_at: addSevenDaysIso(source.lock_at),
         cancel_cutoff_hours: source.cancel_cutoff_hours,
         hold_minutes: source.hold_minutes,

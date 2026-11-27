@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Check,
   Copy,
+  Pencil,
   QrCode,
   Search,
   Share2,
@@ -15,6 +16,7 @@ import {
 import { QrCheckinModal } from '@/components/host/QrCheckinModal';
 import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
 import { ShareMatchModal } from '@/components/host/ShareMatchModal';
+import { EditMatchModal } from '@/components/host/EditMatchModal';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import {
   formatSlotLabel,
@@ -101,6 +103,7 @@ export function MatchDetailTabs({
   const [scannerOpen, setScannerOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Roster filter/search
   const [searchQuery, setSearchQuery] = useState('');
@@ -187,7 +190,7 @@ export function MatchDetailTabs({
   const zaloSummary = [
     `${match.sport.toUpperCase()} · ${match.title} (#${match.short_code})`,
     `${formatMatchDateTime(match.starts_at, locale)}`,
-    `${match.location_name}`,
+    `${match.location_name}${match.court_numbers ? ` · ${t('courtNumberLabel')}: ${match.court_numbers}` : ''}`,
     `${formatVnd(match.fee_per_slot, locale)}/slot (${match.slots_taken}/${match.max_slots})`,
     '',
     ...confirmedAndPending.map(
@@ -232,6 +235,15 @@ export function MatchDetailTabs({
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setEditModalOpen(true)}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 shadow-sm transition hover:border-zinc-950 hover:text-zinc-950 disabled:opacity-40 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-volt dark:hover:text-white"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            <span>{t('hostEditMatch')}</span>
+          </button>
           <button
             type="button"
             onClick={() => setShareModalOpen(true)}
@@ -296,6 +308,9 @@ export function MatchDetailTabs({
           </h1>
           <p className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
             {formatMatchDateTime(match.starts_at, locale)} · {match.location_name}
+            {match.court_numbers
+              ? ` · ${t('courtNumberLabel')}: ${match.court_numbers}`
+              : ''}
           </p>
 
           <div
@@ -960,6 +975,14 @@ export function MatchDetailTabs({
           </form>
         </div>
       )}
+      <EditMatchModal
+        open={editModalOpen}
+        match={match}
+        onClose={() => setEditModalOpen(false)}
+        onSaved={() => {
+          router.refresh();
+        }}
+      />
       <ShareMatchModal
         open={shareModalOpen}
         onClose={() => setShareModalOpen(false)}

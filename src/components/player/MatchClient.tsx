@@ -212,7 +212,7 @@ export function MatchClient({
             </div>
           </div>
 
-          {(match.level || match.courts || match.notes) && (
+          {(match.level || match.court_numbers || match.courts || match.notes) && (
             <div className="mt-4 space-y-2 rounded-2xl border border-zinc-200/80 bg-zinc-50 p-3.5 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300">
               <div className="flex flex-wrap gap-3">
                 {match.level && (
@@ -226,14 +226,14 @@ export function MatchClient({
                     </span>
                   </span>
                 )}
-                {match.courts && (
+                {(match.court_numbers || match.courts) && (
                   <span className="inline-flex items-center gap-1.5 font-semibold">
                     <Layers className="h-3.5 w-3.5 text-zinc-950 dark:text-volt" />
                     <span className="text-zinc-500 dark:text-zinc-400">
-                      {t('courts')}:
+                      {match.court_numbers ? t('courtNumberLabel') : t('courts')}:
                     </span>
                     <span className="tabular-nums text-zinc-950 dark:text-white">
-                      {match.courts}
+                      {match.court_numbers || match.courts}
                     </span>
                   </span>
                 )}
