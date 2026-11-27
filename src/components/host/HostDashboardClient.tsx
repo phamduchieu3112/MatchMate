@@ -9,6 +9,7 @@ import {
   ExternalLink,
   LogOut,
   Plus,
+  Trash2,
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import { translateMatchStatus } from '@/lib/i18n/helpers';
@@ -19,13 +20,42 @@ import { MatchMateLogo } from '@/components/MatchMateLogo';
 export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
   const { locale, t } = useLocale();
   const router = useRouter();
+  const [matchList, setMatchList] = useState<PublicMatch[]>(matches);
   const [cloningId, setCloningId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   const handleLogout = async () => {
     await fetch('/api/host/logout', { method: 'POST' });
     router.push('/host/login');
     router.refresh();
+  };
+
+  const handleDelete = async (matchId: string) => {
+    if (!window.confirm(t('hostDeleteMatchConfirm'))) return;
+    setError('');
+    setDeletingId(matchId);
+    try {
+      const res = await fetch(`/api/host/matches/${matchId}/delete`, {
+        method: 'POST',
+      });
+      const payload = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !payload.ok) {
+        setError(
+          payload.error === 'match_has_payments'
+            ? t('errMatchHasPayments')
+            : t('errGeneric')
+        );
+        setDeletingId(null);
+        return;
+      }
+      setMatchList((prev) => prev.filter((item) => item.id !== matchId));
+      setDeletingId(null);
+      router.refresh();
+    } catch {
+      setError(t('errGeneric'));
+      setDeletingId(null);
+    }
   };
 
   const handleClone = async (matchId: string) => {
@@ -49,8 +79,8 @@ export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
     }
   };
 
-  const openCount = matches.filter((m) => m.status === 'open').length;
-  const totalSlotsTaken = matches.reduce((acc, m) => acc + m.slots_taken, 0);
+  const openCount = matchList.filter((m) => m.status === 'open').length;
+  const totalSlotsTaken = matchList.reduce((acc, m) => acc + m.slots_taken, 0);
 
   const statusBadgeClass = (status: string) => {
     switch (status) {
@@ -107,7 +137,7 @@ export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
         <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-volt" />
           <p className="text-center tabular-nums text-2xl font-black text-zinc-950 dark:text-white">
-            {matches.length}
+            {matchList.length}
           </p>
           <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             {t('hostStatTotalMatches')}
@@ -140,13 +170,13 @@ export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
       )}
 
       {/* Matches List */}
-      {matches.length === 0 ? (
+      {matchList.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-zinc-300 bg-white p-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
           {t('hostEmptyMatches')}
         </div>
       ) : (
         <div className="space-y-3">
-          {matches.map((m) => {
+          {matchList.map((m) => {
             const pct =
               m.max_slots > 0
                 ? Math.min(100, Math.round((m.slots_taken / m.max_slots) * 100))
@@ -218,6 +248,17 @@ export function HostDashboardClient({ matches }: { matches: PublicMatch[] }) {
                     <span>{t('hostManageBtn')}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
+                  <button
+                    type="button"
+                    disabled={deletingId === m.id}
+                    onClick={() => void handleDelete(m.id)}
+                    title={t('hostDeleteMatch')}
+                    aria-label={t('hostDeleteMatch')}
+                    className="inline-flex h-9 items-center gap-1 rounded-xl border border-rose-300 bg-rose-50 px-2.5 text-xs font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-300 dark:hover:bg-rose-950"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{t('hostDeleteMatch')}</span>
+                  </button>
                 </div>
               </div>
             );

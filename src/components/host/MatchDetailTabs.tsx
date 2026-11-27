@@ -9,6 +9,7 @@ import {
   Copy,
   ExternalLink,
   Search,
+  Trash2,
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import {
@@ -137,6 +138,32 @@ export function MatchDetailTabs({
     }
   };
 
+  const handleDeleteMatch = async () => {
+    if (!window.confirm(t('hostDeleteMatchConfirm'))) return;
+    setMsg('');
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/host/matches/${match.id}/delete`, {
+        method: 'POST',
+      });
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        setMsg(
+          data.error === 'match_has_payments'
+            ? t('errMatchHasPayments')
+            : t('errGeneric')
+        );
+        setBusy(false);
+        return;
+      }
+      router.push('/host');
+      router.refresh();
+    } catch {
+      setMsg(t('errGeneric'));
+      setBusy(false);
+    }
+  };
+
   const regById = new Map(registrations.map((r) => [r.id, r]));
   const matchStarted = Date.now() >= new Date(match.starts_at).getTime();
 
@@ -243,6 +270,15 @@ export function MatchDetailTabs({
             className="rounded-xl border border-rose-300 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-40 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-200"
           >
             {t('hostCancelMatch')}
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void handleDeleteMatch()}
+            className="inline-flex items-center gap-1 rounded-xl border border-rose-300 bg-white px-3 py-1.5 text-xs font-bold text-rose-700 transition hover:bg-rose-50 disabled:opacity-40 dark:border-rose-800 dark:bg-zinc-900 dark:text-rose-300 dark:hover:bg-rose-950/60"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            <span>{t('hostDeleteMatch')}</span>
           </button>
         </div>
       </div>
