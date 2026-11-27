@@ -81,7 +81,7 @@ export function CreateMatchForm() {
   );
   const [locationName, setLocationName] = useState('');
   const [mapUrl, setMapUrl] = useState('');
-  const [level, setLevel] = useState('Từ yếu đến trung bình yếu');
+  const [level, setLevel] = useState('Y - TBY');
   const [feePerSlot, setFeePerSlot] = useState(80000);
   const [maxSlots, setMaxSlots] = useState(1);
   const [courts, setCourts] = useState(1);
