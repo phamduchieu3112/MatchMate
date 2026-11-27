@@ -197,7 +197,7 @@ export const en: Dictionary = {
     'Enter each player’s name below. Only one phone number from the group organizer is needed.',
   groupMemberLabel: 'Player #{index} name',
   groupMemberPrimaryPlaceholder: 'e.g. Pham Duc Hieu (Primary)',
-  groupMemberPlaceholder: 'e.g. Minh Tran',
+  groupMemberPlaceholder: 'e.g. Pham Duc Hieu',
   groupLeadPhoneLabel: 'Organizer phone (shared for group)',
   errMissingMemberNames: 'Please enter a name for every selected slot.',
   errSlotsExceedMax: 'Selected slots cannot exceed the {max} slot limit for this session.',

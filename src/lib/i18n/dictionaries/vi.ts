@@ -195,7 +195,7 @@ export const vi = {
     'Nhập tên từng người tham gia bên dưới. Chỉ cần nhập 1 số điện thoại của người đại diện đặt chỗ.',
   groupMemberLabel: 'Tên người chơi #{index}',
   groupMemberPrimaryPlaceholder: 'VD: Phạm Đức Hiếu (Người đặt chính)',
-  groupMemberPlaceholder: 'VD: Minh Trần',
+  groupMemberPlaceholder: 'VD: Phạm Đức Hiếu',
   groupLeadPhoneLabel: 'Số điện thoại người đặt (dùng chung cho cả nhóm)',
   errMissingMemberNames: 'Vui lòng nhập đầy đủ tên cho tất cả các slot đã chọn.',
   errSlotsExceedMax: 'Số slot đặt không được vượt quá {max} slot của buổi chơi.',
