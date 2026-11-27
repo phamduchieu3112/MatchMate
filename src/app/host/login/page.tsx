@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
@@ -9,7 +8,6 @@ import { MatchMateLogo } from '@/components/MatchMateLogo';
 
 export default function HostLoginPage() {
   const { t } = useLocale();
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,8 +28,7 @@ export default function HostLoginPage() {
         setLoading(false);
         return;
       }
-      router.push('/host');
-      router.refresh();
+      window.location.assign('/host');
     } catch {
       setError(t('errGeneric'));
       setLoading(false);
