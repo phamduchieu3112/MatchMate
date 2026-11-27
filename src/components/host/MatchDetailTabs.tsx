@@ -8,9 +8,11 @@ import {
   Check,
   Copy,
   ExternalLink,
+  QrCode,
   Search,
   Trash2,
 } from 'lucide-react';
+import { QrCheckinModal } from '@/components/host/QrCheckinModal';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import {
   formatSlotLabel,
@@ -94,6 +96,7 @@ export function MatchDetailTabs({
   );
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   // Roster filter/search
   const [searchQuery, setSearchQuery] = useState('');
@@ -135,6 +138,19 @@ export function MatchDetailTabs({
       setMsg(t('errGeneric'));
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleQrCheckin = async (registrationId: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/host/registrations/${registrationId}/checkin`, {
+        method: 'POST',
+      });
+      if (!res.ok) return false;
+      router.refresh();
+      return true;
+    } catch {
+      return false;
     }
   };
 
@@ -428,17 +444,27 @@ export function MatchDetailTabs({
             </button>
           </form>
 
-          {/* Search & Status Filter */}
+          {/* Search, QR Scanner & Status Filter */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('searchPlaceholder')}
-                className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-volt"
-              />
+            <div className="flex flex-1 gap-2">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('searchPlaceholder')}
+                  className="h-10 w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 text-sm text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-white dark:focus:border-volt"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setScannerOpen(true)}
+                className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-zinc-950 px-3.5 text-xs font-extrabold uppercase tracking-wide text-volt shadow-sm transition hover:opacity-90 dark:bg-volt dark:text-zinc-950"
+              >
+                <QrCode className="h-4 w-4" />
+                <span>{t('hostScanQrBtn')}</span>
+              </button>
             </div>
 
             <div className="flex flex-wrap gap-1.5">
@@ -954,6 +980,12 @@ export function MatchDetailTabs({
           </form>
         </div>
       )}
+      <QrCheckinModal
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        registrations={registrations}
+        onCheckin={handleQrCheckin}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import QRCode from 'qrcode';
 import {
   AlertCircle,
   AlertTriangle,
@@ -10,6 +11,7 @@ import {
   CheckCircle2,
   Clock,
   Copy,
+  QrCode,
   RefreshCw,
   X,
 } from 'lucide-react';
@@ -31,6 +33,7 @@ export function RegistrationTracker({ id }: { id: string }) {
   const [unauthorized, setUnauthorized] = useState(false);
   const [copied, setCopied] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const [checkinQrUrl, setCheckinQrUrl] = useState<string>('');
 
   const [refundAccount, setRefundAccount] = useState('');
   const [savingRefund, setSavingRefund] = useState(false);
@@ -109,6 +112,30 @@ export function RegistrationTracker({ id }: { id: string }) {
     const tick = window.setInterval(updateCountdown, 1000);
     return () => window.clearInterval(tick);
   }, [reg?.expires_at, reg?.status]);
+
+  // Generate unique check-in QR code immediately when confirmed
+  useEffect(() => {
+    if (reg?.status !== 'confirmed' || !reg.payment_code) {
+      setCheckinQrUrl('');
+      return;
+    }
+    let cancelled = false;
+    void QRCode.toDataURL(`MM:${reg.payment_code}`, {
+      width: 240,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#09090B', light: '#FFFFFF' },
+    })
+      .then((url) => {
+        if (!cancelled) setCheckinQrUrl(url);
+      })
+      .catch(() => {
+        if (!cancelled) setCheckinQrUrl('');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [reg?.status, reg?.payment_code]);
 
   if (loading) {
     return (
@@ -338,8 +365,56 @@ export function RegistrationTracker({ id }: { id: string }) {
           />
         </div>
 
-        {/* Lower Stub: VietQR & Breakdown */}
+        {/* Lower Stub: Confirmed Check-in QR OR Pending VietQR & Breakdown */}
         <div className="space-y-4 p-6">
+          {reg.status === 'confirmed' && checkinQrUrl && (
+            <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-md">
+              <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">
+                <QrCode className="h-3.5 w-3.5" />
+                <span>{t('checkinQrTitle')}</span>
+              </div>
+
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={checkinQrUrl}
+                alt={t('checkinQrTitle')}
+                className="h-52 w-52 rounded-xl border border-zinc-100 bg-white p-1"
+              />
+
+              <div className="mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2">
+                <div className="min-w-0 text-left">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                    {t('checkinTicketCode')}
+                  </span>
+                  <code className="block truncate font-mono text-sm font-black text-zinc-950">
+                    {reg.payment_code}
+                  </code>
+                </div>
+                <button
+                  type="button"
+                  onClick={copyCode}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-zinc-950 px-3 py-1.5 text-xs font-bold text-volt transition hover:opacity-90"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-3.5 w-3.5" />
+                      <span>{t('copied')}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>{t('copyCode')}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p className="mt-3 text-center text-xs leading-relaxed text-zinc-600">
+                {t('checkinQrDesc')}
+              </p>
+            </div>
+          )}
+
           {reg.status === 'pending_payment' && reg.qr_url && (
             <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-md">
               {/* Always pure white frame for Dark Mode QR scan reliability */}

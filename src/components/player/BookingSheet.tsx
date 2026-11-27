@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, Check, Copy, Info, RefreshCw, X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import { formatVnd } from '@/lib/format';
 import { TurnstileWidget } from '@/components/player/TurnstileWidget';
@@ -33,6 +33,15 @@ function generateUuidV4(): string {
   });
 }
 
+function generateRandomPin(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    const arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    return String(arr[0] % 10000).padStart(4, '0');
+  }
+  return String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+}
+
 export function BookingSheet({
   open,
   onClose,
@@ -51,6 +60,7 @@ export function BookingSheet({
   const [contact, setContact] = useState('');
   const [slots, setSlots] = useState(initialSlots);
   const [pin, setPin] = useState('');
+  const [pinCopied, setPinCopied] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
   const [idempotencyKey, setIdempotencyKey] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -59,6 +69,8 @@ export function BookingSheet({
   useEffect(() => {
     if (!open) return;
     setSlots(Math.min(4, Math.max(1, initialSlots)));
+    setPin(generateRandomPin());
+    setPinCopied(false);
     setIdempotencyKey(generateUuidV4());
     setTurnstileToken('');
     setError('');
@@ -294,23 +306,59 @@ export function BookingSheet({
               <label className="block text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                 {t('fieldPin')}
               </label>
-              <input
-                type="password"
-                required
-                inputMode="numeric"
-                pattern="[0-9]{4}"
-                maxLength={4}
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="••••"
-                className="mt-1.5 h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-center font-mono text-base font-bold tracking-[0.35em] text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
-              />
+              <div className="mt-1.5 flex items-center gap-1.5">
+                <input
+                  type="text"
+                  required
+                  inputMode="numeric"
+                  pattern="[0-9]{4}"
+                  maxLength={4}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="1234"
+                  className="h-11 min-w-0 flex-1 rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-center font-mono text-lg font-black tracking-[0.35em] text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-volt/50 dark:bg-zinc-950 dark:text-volt dark:focus:border-volt dark:focus:ring-volt/25"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(pin);
+                      setPinCopied(true);
+                      window.setTimeout(() => setPinCopied(false), 1800);
+                    } catch {
+                      // ignore clipboard error
+                    }
+                  }}
+                  title={t('copyPin')}
+                  aria-label={t('copyPin')}
+                  className="inline-flex h-11 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-300 bg-zinc-50 text-zinc-700 transition hover:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-volt"
+                >
+                  {pinCopied ? (
+                    <Check className="h-4 w-4 text-emerald-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPin(generateRandomPin());
+                    setPinCopied(false);
+                  }}
+                  title={t('regeneratePin')}
+                  aria-label={t('regeneratePin')}
+                  className="inline-flex h-11 w-10 shrink-0 items-center justify-center rounded-xl border border-zinc-300 bg-zinc-50 text-zinc-700 transition hover:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-volt"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
 
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            {t('fieldPinHint')}
-          </p>
+          <div className="flex items-start gap-2 rounded-xl border border-amber-300/80 bg-amber-50 p-3 text-xs font-semibold leading-relaxed text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-200">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span>{t('fieldPinHint')}</span>
+          </div>
 
           <TurnstileWidget onVerify={handleVerify} onExpire={handleExpire} />
 
