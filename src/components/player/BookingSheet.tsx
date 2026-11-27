@@ -2,7 +2,15 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, Check, Copy, Info, RefreshCw, X } from 'lucide-react';
+import {
+  AlertTriangle,
+  Check,
+  Copy,
+  Info,
+  RefreshCw,
+  Users,
+  X,
+} from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import { formatVnd } from '@/lib/format';
 import { TurnstileWidget } from '@/components/player/TurnstileWidget';
@@ -19,6 +27,7 @@ interface BookingSheetProps {
   cancelCutoffHours: number;
   feePerSlot: number;
   initialSlots?: number;
+  maxBookableSlots?: number;
   isWaitlistMode: boolean;
 }
 
@@ -51,14 +60,18 @@ export function BookingSheet({
   cancelCutoffHours,
   feePerSlot,
   initialSlots = 1,
+  maxBookableSlots = 4,
   isWaitlistMode,
 }: BookingSheetProps) {
   const { locale, t } = useLocale();
   const router = useRouter();
 
-  const [name, setName] = useState('');
+  const maxSlots = Math.max(1, maxBookableSlots);
+  const quickSlotOptions = [1, 2, 3, 4].filter((n) => n <= maxSlots);
+
+  const [memberNames, setMemberNames] = useState<string[]>(['']);
   const [contact, setContact] = useState('');
-  const [slots, setSlots] = useState(initialSlots);
+  const [slots, setSlots] = useState(Math.min(maxSlots, Math.max(1, initialSlots)));
   const [pin, setPin] = useState('');
   const [pinCopied, setPinCopied] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState('');
@@ -68,7 +81,8 @@ export function BookingSheet({
 
   useEffect(() => {
     if (!open) return;
-    setSlots(Math.min(4, Math.max(1, initialSlots)));
+    const clampedSlots = Math.min(maxSlots, Math.max(1, initialSlots));
+    setSlots(clampedSlots);
     setPin(generateRandomPin());
     setPinCopied(false);
     setIdempotencyKey(generateUuidV4());
@@ -78,13 +92,43 @@ export function BookingSheet({
       const saved = window.localStorage.getItem(PROFILE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as { name?: string; contact?: string };
-        if (parsed.name) setName(parsed.name);
+        setMemberNames((prev) => {
+          const next = Array.from({ length: Math.max(clampedSlots, prev.length, 1) }, (_, idx) =>
+            prev[idx] ?? ''
+          );
+          if (parsed.name && !next[0]) {
+            next[0] = parsed.name;
+          }
+          return next;
+        });
         if (parsed.contact) setContact(parsed.contact);
+      } else {
+        setMemberNames((prev) =>
+          Array.from({ length: Math.max(clampedSlots, prev.length, 1) }, (_, idx) => prev[idx] ?? '')
+        );
       }
     } catch {
-      // Ignore storage read failure
+      setMemberNames((prev) =>
+        Array.from({ length: Math.max(clampedSlots, prev.length, 1) }, (_, idx) => prev[idx] ?? '')
+      );
     }
-  }, [open, initialSlots]);
+  }, [open, initialSlots, maxSlots]);
+
+  const updateSlotCount = (nextCount: number) => {
+    const clamped = Math.max(1, Math.min(maxSlots, nextCount));
+    setSlots(clamped);
+    setMemberNames((prev) =>
+      Array.from({ length: Math.max(clamped, prev.length) }, (_, idx) => prev[idx] ?? '')
+    );
+  };
+
+  const updateMemberName = (index: number, value: string) => {
+    setMemberNames((prev) => {
+      const next = Array.from({ length: Math.max(slots, prev.length) }, (_, idx) => prev[idx] ?? '');
+      next[index] = value;
+      return next;
+    });
+  };
 
   const handleVerify = useCallback((token: string) => {
     setTurnstileToken(token);
@@ -106,6 +150,10 @@ export function BookingSheet({
         return t('errInvalidPhone');
       case 'invalid_pin':
         return t('errInvalidPin');
+      case 'invalid_slots':
+        return t('errSlotsExceedMax', { max: maxSlots });
+      case 'missing_member_names':
+        return t('errMissingMemberNames');
       case 'per_match_cap':
         return t('errPerMatchCap');
       case 'concurrent_cap':
@@ -130,6 +178,19 @@ export function BookingSheet({
     e.preventDefault();
     setError('');
 
+    const activeNames = Array.from({ length: slots }, (_, idx) =>
+      (memberNames[idx] ?? '').trim()
+    );
+    if (activeNames.some((n) => n.length === 0)) {
+      setError(t('errMissingMemberNames'));
+      return;
+    }
+
+    if (slots < 1 || slots > maxSlots) {
+      setError(t('errSlotsExceedMax', { max: maxSlots }));
+      return;
+    }
+
     const digits = contact.replace(/[^0-9]/g, '');
     if (digits.length < 9 || digits.length > 11) {
       setError(t('errInvalidPhone'));
@@ -147,7 +208,7 @@ export function BookingSheet({
     try {
       window.localStorage.setItem(
         PROFILE_KEY,
-        JSON.stringify({ name: name.trim(), contact: contact.trim() })
+        JSON.stringify({ name: activeNames[0], contact: contact.trim() })
       );
     } catch {
       // Ignore
@@ -163,7 +224,8 @@ export function BookingSheet({
         },
         body: JSON.stringify({
           matchId,
-          name: name.trim(),
+          name: activeNames[0],
+          memberNames: activeNames,
           contact: contact.trim(),
           slots,
           pin,
@@ -227,8 +289,8 @@ export function BookingSheet({
         )}
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          {/* Large 4-column Slot Selector */}
-          <div>
+          {/* Slot Selector (quick 1-4 chips + optional custom picker up to maxSlots) */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                 {t('selectSlotsTitle')}
@@ -237,14 +299,25 @@ export function BookingSheet({
                 {t('totalAmount')}: {formatVnd(totalPrice, locale)}
               </span>
             </div>
-            <div className="mt-2 grid grid-cols-4 gap-2.5">
-              {[1, 2, 3, 4].map((num) => {
+
+            <div
+              className={`grid gap-2.5 ${
+                quickSlotOptions.length === 1
+                  ? 'grid-cols-1'
+                  : quickSlotOptions.length === 2
+                    ? 'grid-cols-2'
+                    : quickSlotOptions.length === 3
+                      ? 'grid-cols-3'
+                      : 'grid-cols-4'
+              }`}
+            >
+              {quickSlotOptions.map((num) => {
                 const selected = slots === num;
                 return (
                   <button
                     key={num}
                     type="button"
-                    onClick={() => setSlots(num)}
+                    onClick={() => updateSlotCount(num)}
                     aria-pressed={selected}
                     className={`flex flex-col items-center justify-center rounded-2xl border py-3 transition ${
                       selected
@@ -268,27 +341,111 @@ export function BookingSheet({
                 );
               })}
             </div>
+
+            {maxSlots > 4 && (
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                    {t('customSlotsLabel')}
+                  </p>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    {t('customSlotsHint', { max: maxSlots })}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => updateSlotCount(slots - 1)}
+                    disabled={slots <= 1}
+                    aria-label="-"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-300 bg-white text-sm font-black text-zinc-800 transition hover:border-zinc-950 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-volt"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    min={1}
+                    max={maxSlots}
+                    value={slots}
+                    onChange={(e) => {
+                      const parsed = Number.parseInt(e.target.value, 10);
+                      if (Number.isNaN(parsed)) return;
+                      updateSlotCount(parsed);
+                    }}
+                    aria-label={t('customSlotsLabel')}
+                    className="h-8 w-14 rounded-lg border border-zinc-300 bg-white text-center font-mono text-sm font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-volt dark:focus:border-volt"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => updateSlotCount(slots + 1)}
+                    disabled={slots >= maxSlots}
+                    aria-label="+"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-300 bg-white text-sm font-black text-zinc-800 transition hover:border-zinc-950 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:border-volt"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-              {t('fieldName')}
-            </label>
-            <input
-              type="text"
-              required
-              maxLength={60}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('fieldNamePlaceholder')}
-              className="mt-1.5 h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
-            />
-          </div>
+          {/* Player Name(s) */}
+          {slots === 1 ? (
+            <div>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                {t('fieldName')}
+              </label>
+              <input
+                type="text"
+                required
+                maxLength={60}
+                value={memberNames[0] ?? ''}
+                onChange={(e) => updateMemberName(0, e.target.value)}
+                placeholder={t('fieldNamePlaceholder')}
+                className="mt-1.5 h-11 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
+              />
+            </div>
+          ) : (
+            <div className="space-y-3 rounded-2xl border border-zinc-200 bg-zinc-50/80 p-3.5 dark:border-zinc-800 dark:bg-zinc-950/70">
+              <div className="space-y-1">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-zinc-950 px-2.5 py-0.5 text-[11px] font-extrabold text-volt dark:bg-volt dark:text-zinc-950">
+                  <Users className="h-3.5 w-3.5" />
+                  <span>{t('groupBookingBadge')}</span>
+                </div>
+                <p className="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  {t('groupBookingDesc')}
+                </p>
+              </div>
+
+              <div className="space-y-2.5">
+                {Array.from({ length: slots }, (_, idx) => (
+                  <div key={idx}>
+                    <label className="block text-[11px] font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                      {t('groupMemberLabel', { index: idx + 1 })}
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      maxLength={60}
+                      value={memberNames[idx] ?? ''}
+                      onChange={(e) => updateMemberName(idx, e.target.value)}
+                      placeholder={
+                        idx === 0
+                          ? t('groupMemberPrimaryPlaceholder')
+                          : t('groupMemberPlaceholder')
+                      }
+                      className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                {t('fieldPhone')}
+                {slots > 1 ? t('groupLeadPhoneLabel') : t('fieldPhone')}
               </label>
               <input
                 type="tel"

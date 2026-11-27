@@ -7,10 +7,10 @@ import {
   AlertTriangle,
   ArrowRight,
   CopyPlus,
-  ExternalLink,
   Landmark,
   LogOut,
   Plus,
+  Share2,
   Trash2,
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
@@ -19,6 +19,7 @@ import { formatMatchDateTime, formatVnd } from '@/lib/format';
 import type { PublicMatch } from '@/lib/types';
 import { MatchMateLogo } from '@/components/MatchMateLogo';
 import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
+import { ShareMatchModal } from '@/components/host/ShareMatchModal';
 
 export interface HostPaymentStatusProp {
   email: string;
@@ -45,6 +46,7 @@ export function HostDashboardClient({
   const [matchList, setMatchList] = useState<PublicMatch[]>(matches);
   const [cloningId, setCloningId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PublicMatch | null>(null);
+  const [shareTarget, setShareTarget] = useState<PublicMatch | null>(null);
   const [error, setError] = useState('');
 
   const handleLogout = async () => {
@@ -262,14 +264,15 @@ export function HostDashboardClient({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <Link
-                    href={`/keo/${m.short_code}`}
-                    title={t('hostPublicPageBtn')}
-                    className="inline-flex h-9 items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 px-3 font-mono text-xs font-bold text-zinc-700 transition hover:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-volt"
+                  <button
+                    type="button"
+                    onClick={() => setShareTarget(m)}
+                    title={t('shareMatchTitle')}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 font-mono text-xs font-bold text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-volt dark:hover:text-white"
                   >
                     <span>/keo/{m.short_code}</span>
-                    <ExternalLink className="h-3 w-3 opacity-70" />
-                  </Link>
+                    <Share2 className="h-3.5 w-3.5 opacity-80" />
+                  </button>
                   <button
                     type="button"
                     disabled={cloningId === m.id}
@@ -301,6 +304,15 @@ export function HostDashboardClient({
             );
           })}
         </div>
+      )}
+
+      {shareTarget && (
+        <ShareMatchModal
+          open={Boolean(shareTarget)}
+          onClose={() => setShareTarget(null)}
+          shortCode={shareTarget.short_code}
+          matchTitle={shareTarget.title}
+        />
       )}
 
       {deleteTarget && (

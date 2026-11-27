@@ -7,13 +7,14 @@ import {
   ArrowLeft,
   Check,
   Copy,
-  ExternalLink,
   QrCode,
   Search,
+  Share2,
   Trash2,
 } from 'lucide-react';
 import { QrCheckinModal } from '@/components/host/QrCheckinModal';
 import { DeleteMatchModal } from '@/components/host/DeleteMatchModal';
+import { ShareMatchModal } from '@/components/host/ShareMatchModal';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import {
   formatSlotLabel,
@@ -99,6 +100,7 @@ export function MatchDetailTabs({
   const [msg, setMsg] = useState('');
   const [scannerOpen, setScannerOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Roster filter/search
   const [searchQuery, setSearchQuery] = useState('');
@@ -230,13 +232,15 @@ export function MatchDetailTabs({
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/keo/${match.short_code}`}
-            className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 font-mono text-xs font-bold text-zinc-700 shadow-sm transition hover:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-volt"
+          <button
+            type="button"
+            onClick={() => setShareModalOpen(true)}
+            title={t('shareMatchTitle')}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-1.5 font-mono text-xs font-bold text-zinc-700 shadow-sm transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-volt dark:hover:text-white"
           >
             <span>#{match.short_code}</span>
-            <ExternalLink className="h-3 w-3 opacity-70" />
-          </Link>
+            <Share2 className="h-3.5 w-3.5 opacity-80" />
+          </button>
           {match.status === 'open' && (
             <button
               type="button"
@@ -956,6 +960,13 @@ export function MatchDetailTabs({
           </form>
         </div>
       )}
+      <ShareMatchModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        shortCode={match.short_code}
+        matchTitle={match.title}
+        siteUrl={siteUrl}
+      />
       <QrCheckinModal
         open={scannerOpen}
         onClose={() => setScannerOpen(false)}

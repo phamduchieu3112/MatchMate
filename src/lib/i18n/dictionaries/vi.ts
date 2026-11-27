@@ -173,6 +173,32 @@ export const vi = {
   helpButtonLabel: 'Mở trợ giúp',
   helpCloseLabel: 'Đóng trợ giúp',
   helpMessengerLabel: 'Hỗ trợ qua Messenger',
+
+  // Share Match Modal (Admin)
+  shareMatchTitle: 'Chia sẻ buổi chơi',
+  shareMatchDesc:
+    'Sao chép đường link hoặc cho người chơi quét mã QR bằng Zalo / camera để vào đặt chỗ ngay.',
+  shareMatchLinkLabel: 'Đường link đặt sân',
+  shareMatchCopyLink: 'Sao chép link',
+  shareMatchCopiedLink: 'Đã sao chép',
+  shareMatchQrTitle: 'Mã QR đặt sân',
+  shareMatchQrHint: 'Mở Zalo hoặc camera điện thoại để quét mã và đặt slot trực tiếp.',
+  shareMatchDownloadQr: 'Tải mã QR',
+  shareMatchOpenLink: 'Mở trang đặt sân',
+  shareMatchBtn: 'Chia sẻ',
+
+  // Flexible Slots & Group Booking
+  customSlotsLabel: 'Số slot khác',
+  customSlotsHint: 'Tối đa {max} slot',
+  groupBookingBadge: 'Đặt cho cả nhóm · Dùng chung 1 số điện thoại',
+  groupBookingDesc:
+    'Nhập tên từng người tham gia bên dưới. Chỉ cần nhập 1 số điện thoại của người đại diện đặt chỗ.',
+  groupMemberLabel: 'Tên người chơi #{index}',
+  groupMemberPrimaryPlaceholder: 'VD: Huy Nguyễn (Người đặt chính)',
+  groupMemberPlaceholder: 'VD: Minh Trần',
+  groupLeadPhoneLabel: 'Số điện thoại người đặt (dùng chung cho cả nhóm)',
+  errMissingMemberNames: 'Vui lòng nhập đầy đủ tên cho tất cả các slot đã chọn.',
+  errSlotsExceedMax: 'Số slot đặt không được vượt quá {max} slot của buổi chơi.',
   refundSectionTitle: 'Tài khoản nhận hoàn tiền',
   refundAccountLabel: 'Tài khoản nhận hoàn tiền',
   refundAccountPlaceholder: 'VD: MBBank 0123456789 - NGUYEN VAN A',

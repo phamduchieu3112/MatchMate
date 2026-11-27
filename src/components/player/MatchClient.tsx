@@ -94,6 +94,12 @@ export function MatchClient({
 
   const available = participantsData.available_slots;
   const taken = participantsData.slots_taken;
+  const maxBookableSlots = Math.max(
+    1,
+    Math.min(match.max_slots, available > 0 ? available : match.max_slots)
+  );
+  const quickSlotOptions = [1, 2, 3, 4].filter((n) => n <= maxBookableSlots);
+  const safeSelectedSlots = Math.min(selectedSlots, maxBookableSlots);
   const occupancyPct =
     match.max_slots > 0
       ? Math.min(100, Math.round((taken / match.max_slots) * 100))
@@ -302,7 +308,7 @@ export function MatchClient({
         </div>
       </section>
 
-      {/* Large 4-column Slot Selector Chips */}
+      {/* Large Slot Selector Chips (up to 4 quick chips + custom selector if match allows > 4) */}
       {isBookable && (
         <section className="space-y-2.5">
           <div className="flex items-center justify-between">
@@ -312,14 +318,24 @@ export function MatchClient({
             <span className="tabular-nums text-xs font-bold text-zinc-600 dark:text-zinc-400">
               {t('totalAmount')}:{' '}
               <strong className="text-zinc-950 dark:text-volt">
-                {formatVnd(match.fee_per_slot * selectedSlots, locale)}
+                {formatVnd(match.fee_per_slot * safeSelectedSlots, locale)}
               </strong>
             </span>
           </div>
 
-          <div className="grid grid-cols-4 gap-2.5">
-            {[1, 2, 3, 4].map((num) => {
-              const active = selectedSlots === num;
+          <div
+            className={`grid gap-2.5 ${
+              quickSlotOptions.length === 1
+                ? 'grid-cols-1'
+                : quickSlotOptions.length === 2
+                  ? 'grid-cols-2'
+                  : quickSlotOptions.length === 3
+                    ? 'grid-cols-3'
+                    : 'grid-cols-4'
+            }`}
+          >
+            {quickSlotOptions.map((num) => {
+              const active = safeSelectedSlots === num;
               return (
                 <button
                   key={num}
@@ -348,6 +364,56 @@ export function MatchClient({
               );
             })}
           </div>
+
+          {maxBookableSlots > 4 && (
+            <div className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div>
+                <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-200">
+                  {t('customSlotsLabel')}
+                </p>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                  {t('customSlotsHint', { max: maxBookableSlots })}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedSlots((prev) => Math.max(1, Math.min(prev, maxBookableSlots) - 1))
+                  }
+                  disabled={safeSelectedSlots <= 1}
+                  aria-label="-"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-base font-black text-zinc-800 transition hover:border-zinc-950 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-volt"
+                >
+                  −
+                </button>
+                <input
+                  type="number"
+                  min={1}
+                  max={maxBookableSlots}
+                  value={safeSelectedSlots}
+                  onChange={(e) => {
+                    const parsed = Number.parseInt(e.target.value, 10);
+                    if (Number.isNaN(parsed)) return;
+                    setSelectedSlots(Math.max(1, Math.min(maxBookableSlots, parsed)));
+                  }}
+                  aria-label={t('customSlotsLabel')}
+                  className="h-9 w-16 rounded-xl border border-zinc-300 bg-zinc-50 text-center font-mono text-sm font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-volt dark:focus:border-volt"
+                />
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedSlots((prev) => Math.min(maxBookableSlots, Math.max(1, prev) + 1))
+                  }
+                  disabled={safeSelectedSlots >= maxBookableSlots}
+                  aria-label="+"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-base font-black text-zinc-800 transition hover:border-zinc-950 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:hover:border-volt"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       )}
 
@@ -496,7 +562,7 @@ export function MatchClient({
                 {available > 0 ? t('bookBtn') : t('joinWaitlistBtn')}
               </span>
               <span className="tabular-nums">
-                · {formatVnd(match.fee_per_slot * selectedSlots, locale)}
+                · {formatVnd(match.fee_per_slot * safeSelectedSlots, locale)}
               </span>
             </button>
           ) : (
@@ -519,7 +585,8 @@ export function MatchClient({
         startsAt={match.starts_at}
         cancelCutoffHours={match.cancel_cutoff_hours}
         feePerSlot={match.fee_per_slot}
-        initialSlots={selectedSlots}
+        initialSlots={safeSelectedSlots}
+        maxBookableSlots={maxBookableSlots}
         isWaitlistMode={available <= 0}
       />
     </div>

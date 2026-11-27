@@ -175,6 +175,32 @@ export const en: Dictionary = {
   helpButtonLabel: 'Open help menu',
   helpCloseLabel: 'Close help menu',
   helpMessengerLabel: 'Chat via Messenger',
+
+  // Share Match Modal (Admin)
+  shareMatchTitle: 'Share session',
+  shareMatchDesc:
+    'Copy the booking link or let players scan the QR code with Zalo or any camera app to book instantly.',
+  shareMatchLinkLabel: 'Booking link',
+  shareMatchCopyLink: 'Copy link',
+  shareMatchCopiedLink: 'Copied',
+  shareMatchQrTitle: 'Booking QR Code',
+  shareMatchQrHint: 'Scan with Zalo or your phone camera to open the booking page.',
+  shareMatchDownloadQr: 'Download QR',
+  shareMatchOpenLink: 'Open booking page',
+  shareMatchBtn: 'Share',
+
+  // Flexible Slots & Group Booking
+  customSlotsLabel: 'Custom slots',
+  customSlotsHint: 'Up to {max} slots',
+  groupBookingBadge: 'Group booking · 1 shared phone number',
+  groupBookingDesc:
+    'Enter each player’s name below. Only one phone number from the group organizer is needed.',
+  groupMemberLabel: 'Player #{index} name',
+  groupMemberPrimaryPlaceholder: 'e.g. Alex Nguyen (Primary)',
+  groupMemberPlaceholder: 'e.g. Minh Tran',
+  groupLeadPhoneLabel: 'Organizer phone (shared for group)',
+  errMissingMemberNames: 'Please enter a name for every selected slot.',
+  errSlotsExceedMax: 'Selected slots cannot exceed the {max} slot limit for this session.',
   refundSectionTitle: 'Refund Receiving Account',
   refundAccountLabel: 'Refund Account',
   refundAccountPlaceholder: 'e.g. MBBank 0123456789 - JOHN DOE',

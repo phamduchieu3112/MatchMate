@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
   }
 
   const matchId = body.matchId;
-  const name = sanitizeText(body.name, 60);
+  const rawSingleName = sanitizeText(body.name, 60);
   const phone = validateAndNormalizePhone(body.contact);
   const slots = body.slots;
   const pin = body.pin;
@@ -72,14 +72,27 @@ export async function POST(request: NextRequest) {
 
   if (
     !isValidUuid(matchId) ||
-    !name ||
     !phone.valid ||
     typeof slots !== 'number' ||
     !Number.isInteger(slots) ||
     slots < 1 ||
-    slots > 4 ||
+    slots > 50 ||
     !isValidPin(pin)
   ) {
+    return NextResponse.json({ error: 'invalid_input' }, { status: 400 });
+  }
+
+  // Group booking: when slots > 1 and memberNames[] is provided, require a name for each slot
+  let displayName = rawSingleName;
+  if (Array.isArray(body.memberNames)) {
+    const cleanedNames = body.memberNames.map((entry) => sanitizeText(entry, 60));
+    if (cleanedNames.length !== slots || cleanedNames.some((n) => !n)) {
+      return NextResponse.json({ error: 'missing_member_names' }, { status: 400 });
+    }
+    displayName = cleanedNames.join(', ').slice(0, 300);
+  }
+
+  if (!displayName) {
     return NextResponse.json({ error: 'invalid_input' }, { status: 400 });
   }
 
@@ -190,10 +203,24 @@ export async function POST(request: NextRequest) {
       action: contactAction,
     });
 
+    // Verify requested slots do not exceed the match's configured max_slots
+    const { data: matchMeta } = await admin
+      .from('matches')
+      .select('max_slots')
+      .eq('id', matchId)
+      .maybeSingle();
+
+    if (!matchMeta) {
+      return NextResponse.json({ error: 'match_not_found' }, { status: 404 });
+    }
+    if (slots > (matchMeta as { max_slots: number }).max_slots) {
+      return NextResponse.json({ error: 'invalid_slots' }, { status: 400 });
+    }
+
     // Execute atomic book_slots RPC
     const { data, error } = await admin.rpc('book_slots', {
       p_match_id: matchId,
-      p_name: name,
+      p_name: displayName,
       p_contact: phone.sanitized,
       p_slots: slots,
       p_pin: pin,
