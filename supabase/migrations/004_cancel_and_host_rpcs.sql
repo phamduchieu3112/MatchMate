@@ -97,7 +97,7 @@ BEGIN
 
   -- Save refund_account_info FIRST so newly created refund rows inherit it immediately
   v_account_info := COALESCE(
-    NULLIF(trim(regexp_replace(COALESCE(p_refund_account_info, ''), '[' || chr(0) || ']', '', 'g')), ''),
+    NULLIF(trim(COALESCE(p_refund_account_info, '')), ''),
     v_reg.refund_account_info
   );
 
@@ -170,7 +170,7 @@ DECLARE
   v_clean text;
   v_reg public.registrations%ROWTYPE;
 BEGIN
-  v_clean := trim(regexp_replace(COALESCE(p_account_info, ''), '[' || chr(0) || chr(8237) || chr(8238) || ']', '', 'g'));
+  v_clean := trim(regexp_replace(COALESCE(p_account_info, ''), '[' || chr(8237) || chr(8238) || ']', '', 'g'));
   IF v_clean = '' OR char_length(v_clean) > 200 THEN
     RETURN jsonb_build_object('ok', false, 'error', 'invalid_refund_account');
   END IF;

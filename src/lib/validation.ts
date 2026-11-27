@@ -171,10 +171,14 @@ export function validateSePayPayload(
     return { ok: false, error: 'invalid_account_number' };
   }
 
-  if (
-    normalizeBankAccount(record.accountNumber) !==
-    normalizeBankAccount(expectedAccount)
-  ) {
+  const normExpected = normalizeBankAccount(expectedAccount);
+  const normAccount = normalizeBankAccount(record.accountNumber);
+  const normSubAccount =
+    typeof record.subAccount === 'string'
+      ? normalizeBankAccount(record.subAccount)
+      : '';
+
+  if (normAccount !== normExpected && normSubAccount !== normExpected) {
     return { ok: false, error: 'account_mismatch' };
   }
 

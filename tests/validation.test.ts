@@ -47,6 +47,21 @@ describe('SePay webhook payload validation', () => {
     }
   });
 
+  it('accepts Virtual Account (VA) match via subAccount', () => {
+    const res = validateSePayPayload(
+      {
+        id: 182963448,
+        accountNumber: '8846470573',
+        subAccount: '96247MATCHMATE',
+        transferType: 'in',
+        transferAmount: 50000,
+        content: 'KEO7X9A2B',
+      },
+      '96247MATCHMATE'
+    );
+    expect(res.ok).toBe(true);
+  });
+
   it('rejects outbound, mismatched account, non-integer/out-of-bounds amount, or malformed shape', () => {
     expect(
       validateSePayPayload(

@@ -193,9 +193,9 @@ BEGIN
   FROM public.matches
   WHERE matches.id = p_match_id;
 
-  -- Sanitize inputs (strip NUL and bidi overrides)
-  v_name := trim(regexp_replace(COALESCE(p_name, ''), '[' || chr(0) || chr(8237) || chr(8238) || ']', '', 'g'));
-  v_contact := trim(regexp_replace(COALESCE(p_contact, ''), '[' || chr(0) || chr(8237) || chr(8238) || ']', '', 'g'));
+  -- Sanitize inputs (strip bidi overrides; NUL bytes are already rejected by Postgres text & stripped in JS)
+  v_name := trim(regexp_replace(COALESCE(p_name, ''), '[' || chr(8237) || chr(8238) || ']', '', 'g'));
+  v_contact := trim(regexp_replace(COALESCE(p_contact, ''), '[' || chr(8237) || chr(8238) || ']', '', 'g'));
 
   IF v_name = '' OR char_length(v_name) > 60 THEN
     RAISE EXCEPTION 'invalid_name' USING ERRCODE = 'P0001';
