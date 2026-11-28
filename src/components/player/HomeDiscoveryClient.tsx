@@ -20,7 +20,6 @@ import { formatMatchDateTimeRange, formatVnd } from '@/lib/format';
 import { translateMatchStatus } from '@/lib/i18n/helpers';
 import { extractMatchCode } from '@/lib/ui-helpers';
 import type { PublicMatch } from '@/lib/types';
-import { MatchMateLogo } from '@/components/MatchMateLogo';
 import { MyBookingsBanner } from '@/components/player/MyBookingsBanner';
 
 interface HomeDiscoveryClientProps {
@@ -160,48 +159,47 @@ export function HomeDiscoveryClient({
   }, [weekDays, selectedDayKey]);
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 max-w-full space-y-5 sm:space-y-6">
       {/* Compact Athletic Hero + Quick Join Bar */}
-      <section className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-7">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <MatchMateLogo variant="full" size="md" />
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-zinc-900 dark:border-volt/30 dark:bg-volt/10 dark:text-volt">
-            <Zap className="h-3.5 w-3.5" />
-            <span>{t('homeHeroBadge')}</span>
+      <section className="relative w-full max-w-full overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-zinc-900 dark:border-volt/30 dark:bg-volt/10 dark:text-volt">
+            <Zap className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{t('homeHeroBadge')}</span>
           </span>
         </div>
 
-        <h1 className="mt-4 text-2xl font-extrabold uppercase tracking-tight text-zinc-950 dark:text-white sm:text-3xl">
+        <h1 className="mt-2.5 text-xl font-extrabold uppercase tracking-tight text-zinc-950 dark:text-white sm:mt-3 sm:text-3xl">
           {t('homeHeroTitle')}
         </h1>
-        <p className="mt-1.5 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-1 max-w-2xl text-xs text-zinc-600 dark:text-zinc-400 sm:mt-1.5 sm:text-sm">
           {t('homeHeroSubtitle')}
         </p>
 
         {/* Compact Quick Join Bar */}
         <form
           onSubmit={handleQuickJoin}
-          className="mt-4 flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950 sm:flex-row sm:items-center"
+          className="mt-3 flex min-w-0 max-w-full flex-col gap-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-2.5 dark:border-zinc-800 dark:bg-zinc-950 sm:mt-4 sm:flex-row sm:items-center"
         >
-          <div className="flex items-center gap-2 px-2 text-xs font-extrabold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <div className="flex min-w-0 items-center gap-2 px-1.5 text-xs font-extrabold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 sm:px-2">
             <Ticket className="h-4 w-4 shrink-0 text-zinc-950 dark:text-volt" />
-            <span className="whitespace-nowrap">{t('homeQuickJoinLabel')}</span>
+            <span className="truncate">{t('homeQuickJoinLabel')}</span>
           </div>
-          <div className="flex flex-1 gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <input
               type="text"
               value={codeInput}
               onChange={(e) => setCodeInput(e.target.value)}
               placeholder={t('homeCodePlaceholder')}
               aria-label={t('homeQuickJoinLabel')}
-              className="h-10 min-w-0 flex-1 rounded-xl border border-zinc-300 bg-white px-3 font-mono text-sm font-bold tracking-wider text-zinc-950 outline-none transition placeholder:font-sans placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-zinc-400 focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-volt"
+              className="h-10 w-full min-w-0 flex-1 rounded-xl border border-zinc-300 bg-white px-3 font-mono text-sm font-bold tracking-wider text-zinc-950 outline-none transition placeholder:font-sans placeholder:text-xs placeholder:font-normal placeholder:tracking-normal placeholder:text-zinc-400 focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-volt"
             />
             <button
               type="submit"
-              className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-volt px-4 text-xs font-extrabold uppercase tracking-wide text-zinc-950 shadow-sm transition hover:bg-volt-hover"
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl bg-volt px-3.5 text-xs font-extrabold uppercase tracking-wide text-zinc-950 shadow-sm transition hover:bg-volt-hover sm:px-4"
             >
               <span>{t('homeGoBtn')}</span>
-              <ArrowRight className="h-3.5 w-3.5" />
+              <ArrowRight className="h-3.5 w-3.5 shrink-0" />
             </button>
           </div>
         </form>
@@ -216,9 +214,9 @@ export function HomeDiscoveryClient({
       <MyBookingsBanner variant="section" />
 
       {/* Public Discovery Feed & Weekly Calendar */}
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+      <section className="min-w-0 max-w-full space-y-4">
+        <div className="flex min-w-0 max-w-full flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
             <h2 className="text-lg font-extrabold uppercase tracking-tight text-zinc-950 dark:text-white">
               {t('homeFeedTitle')}
             </h2>
@@ -228,7 +226,7 @@ export function HomeDiscoveryClient({
           </div>
 
           {/* Feed vs Weekly Calendar Toggle */}
-          <div className="inline-flex rounded-full border border-zinc-200 bg-white p-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="inline-flex max-w-full rounded-full border border-zinc-200 bg-white p-1 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <button
               type="button"
               onClick={() => setViewMode('feed')}
@@ -257,9 +255,9 @@ export function HomeDiscoveryClient({
         </div>
 
         {/* Filters Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="flex min-w-0 max-w-full flex-wrap items-center justify-between gap-2.5 rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           {/* Sport Pills */}
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-1.5">
             <button
               type="button"
               onClick={() => setSportFilter('all')}
@@ -288,12 +286,12 @@ export function HomeDiscoveryClient({
           </div>
 
           {/* Level Select & Open Slots Toggle */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">
             <select
               value={levelFilter}
               onChange={(e) => setLevelFilter(e.target.value)}
               aria-label={t('level')}
-              className="h-8 rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-bold text-zinc-700 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:focus:border-volt"
+              className="h-8 max-w-full rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-bold text-zinc-700 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200 dark:focus:border-volt"
             >
               <option value="all">{t('homeFilterLevelAll')}</option>
               {levelOptions.map((lv) => (
@@ -344,12 +342,12 @@ export function HomeDiscoveryClient({
                     <Link
                       key={m.id}
                       href={`/keo/${m.short_code}`}
-                      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-950 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-volt"
+                      className="group relative flex min-w-0 max-w-full flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-950 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-volt"
                     >
-                      <div className="h-1 w-full bg-volt" />
-                      <div className="space-y-3 p-5">
+                      <div className="h-1 w-full shrink-0 bg-volt" />
+                      <div className="min-w-0 space-y-3 p-5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex min-w-0 items-center gap-1.5">
                             <span className="rounded-full bg-zinc-950 px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-volt dark:bg-volt dark:text-zinc-950">
                               {m.sport}
                             </span>
@@ -368,25 +366,25 @@ export function HomeDiscoveryClient({
                           </span>
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                           <h3 className="line-clamp-2 text-base font-extrabold uppercase tracking-tight text-zinc-950 transition group-hover:text-zinc-700 dark:text-white dark:group-hover:text-volt">
                             {m.title}
                           </h3>
                           <div className="mt-2 space-y-1 text-xs text-zinc-600 dark:text-zinc-300">
-                            <p className="flex items-center gap-1.5 font-semibold">
+                            <p className="flex min-w-0 items-center gap-1.5 font-semibold">
                               <Calendar className="h-3.5 w-3.5 shrink-0 text-zinc-950 dark:text-volt" />
-                              <span>
+                              <span className="truncate">
                                 {formatMatchDateTimeRange(m.starts_at, m.notes, locale)}
                               </span>
                             </p>
-                            <p className="flex items-center gap-1.5">
+                            <p className="flex min-w-0 items-center gap-1.5">
                               <MapPin className="h-3.5 w-3.5 shrink-0 text-rose-500" />
                               <span className="truncate">{m.location_name}</span>
                             </p>
                             {m.level && (
-                              <p className="flex items-center gap-1.5">
+                              <p className="flex min-w-0 items-center gap-1.5">
                                 <Sparkles className="h-3.5 w-3.5 shrink-0 text-zinc-950 dark:text-volt" />
-                                <span>
+                                <span className="truncate">
                                   {t('level')}:{' '}
                                   <strong className="text-zinc-900 dark:text-white">
                                     {m.level}
@@ -412,7 +410,7 @@ export function HomeDiscoveryClient({
                       </div>
 
                       <div className="space-y-2.5 px-5 pb-4 pt-3">
-                        <div className="flex items-baseline justify-between gap-2">
+                        <div className="flex flex-wrap items-baseline justify-between gap-2">
                           <span className="tabular-nums text-lg font-black text-zinc-950 dark:text-white">
                             {formatVnd(m.fee_per_slot, locale)}{' '}
                             <span className="text-[11px] font-bold uppercase text-zinc-500">
@@ -450,9 +448,9 @@ export function HomeDiscoveryClient({
 
         {/* WEEKLY CALENDAR VIEW (Mon - Sun) */}
         {viewMode === 'calendar' && (
-          <div className="space-y-4 rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
+          <div className="min-w-0 max-w-full space-y-4 rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -499,7 +497,7 @@ export function HomeDiscoveryClient({
             </div>
 
             {/* Mon-Sun Strip */}
-            <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+            <div className="grid grid-cols-7 gap-1 sm:gap-2">
               {weekDays.map((day) => {
                 const count = (matchesByDay.get(day.dateKey) ?? []).length;
                 const isSelected = selectedDayKey === day.dateKey;
@@ -512,7 +510,7 @@ export function HomeDiscoveryClient({
                         prev === day.dateKey ? null : day.dateKey
                       )
                     }
-                    className={`flex flex-col items-center justify-center rounded-2xl border px-1 py-2.5 text-center transition ${
+                    className={`flex min-w-0 flex-col items-center justify-center rounded-2xl border px-0.5 py-2 text-center transition sm:px-1 sm:py-2.5 ${
                       isSelected
                         ? 'border-volt bg-volt text-zinc-950 shadow-sm'
                         : count > 0
@@ -523,7 +521,7 @@ export function HomeDiscoveryClient({
                     <span className="text-[10px] font-extrabold uppercase tracking-wider">
                       {day.weekdayLabel}
                     </span>
-                    <span className="mt-0.5 tabular-nums text-xs font-black sm:text-sm">
+                    <span className="mt-0.5 tabular-nums text-[11px] font-black sm:text-sm">
                       {day.dayNum}
                     </span>
                     <span className="mt-1 flex h-4 items-center justify-center">
@@ -576,7 +574,7 @@ export function HomeDiscoveryClient({
                             <Link
                               key={m.id}
                               href={`/keo/${m.short_code}`}
-                              className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-volt"
+                              className="flex min-w-0 max-w-full items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-volt"
                             >
                               <div className="min-w-0">
                                 <div className="flex items-center gap-1.5">

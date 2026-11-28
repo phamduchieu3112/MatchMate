@@ -25,13 +25,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="vi" suppressHydrationWarning>
-      <body className="bg-zinc-100 text-zinc-950 antialiased selection:bg-volt selection:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
+    <html lang="vi" suppressHydrationWarning className="overflow-x-clip">
+      <body className="min-h-dvh w-full max-w-full overflow-x-clip bg-zinc-100 text-zinc-950 antialiased selection:bg-volt selection:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
         <ThemeProvider>
           <LocaleProvider>
             <SwRegister />
             <AppHeader />
-            <main className="mx-auto max-w-4xl px-4 pb-28 pt-5">{children}</main>
+            <main className="mx-auto w-full max-w-4xl overflow-x-clip px-4 pb-24 pt-4 sm:pb-28 sm:pt-5">
+              {children}
+            </main>
             <FloatingHelpButton />
           </LocaleProvider>
         </ThemeProvider>

@@ -49,6 +49,7 @@ export const vi = {
   homeFeatureNoAccount: 'Không cần tài khoản',
   homeRecentBookings: 'Vé đặt gần đây trên thiết bị này',
   hostLink: 'Dành cho chủ sân',
+  hostLinkShort: 'Chủ sân',
   homeHostCtaSub: 'Tạo buổi chơi, theo dõi người đặt và đối soát thanh toán.',
   myBookingsTitle: 'Vé đặt chỗ của bạn',
   myBookingsOpen: 'Mở vé',

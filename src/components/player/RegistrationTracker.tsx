@@ -283,15 +283,15 @@ export function RegistrationTracker({ id }: { id: string }) {
   const remainingAmount = reg.amount_remaining ?? Math.max(reg.amount_due - reg.amount_paid, 0);
 
   return (
-    <div className="mx-auto max-w-lg space-y-5">
+    <div className="mx-auto w-full min-w-0 max-w-lg space-y-5">
       {/* Top Bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Link
           href={`/keo/${reg.match.short_code}`}
-          className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-700 shadow-sm transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-volt dark:hover:text-white"
+          className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-700 shadow-sm transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-volt dark:hover:text-white"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>
+          <ArrowLeft className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">
             {t('backToMatch')} (#{reg.match.short_code})
           </span>
         </Link>
@@ -301,7 +301,7 @@ export function RegistrationTracker({ id }: { id: string }) {
           onClick={() => void fetchReg()}
           aria-label={t('refresh')}
           title={t('refresh')}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-volt dark:hover:text-white"
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-volt dark:hover:text-white"
         >
           <RefreshCw className="h-3.5 w-3.5" />
         </button>
@@ -315,12 +315,12 @@ export function RegistrationTracker({ id }: { id: string }) {
       )}
 
       {/* Digital Wallet Pass / Ticket Stub */}
-      <section className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="relative w-full max-w-full overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         {/* Top Accent Strip */}
         <div className="h-1.5 w-full bg-volt" />
 
         {/* Upper Pass Section: Status & Countdown */}
-        <div className="p-6 text-center">
+        <div className="p-4 text-center sm:p-6">
           <div className="flex justify-center">
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider ${statusPillStyle()}`}
@@ -391,9 +391,9 @@ export function RegistrationTracker({ id }: { id: string }) {
         </div>
 
         {/* Lower Stub: Confirmed Check-in QR OR Pending VietQR & Breakdown */}
-        <div className="space-y-4 p-6">
+        <div className="space-y-4 p-4 sm:p-6">
           {reg.status === 'confirmed' && checkinQrUrl && (
-            <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-md">
+            <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-md sm:p-5">
               <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-emerald-800">
                 <QrCode className="h-3.5 w-3.5" />
                 <span>{t('checkinQrTitle')}</span>
@@ -403,7 +403,7 @@ export function RegistrationTracker({ id }: { id: string }) {
               <img
                 src={checkinQrUrl}
                 alt={t('checkinQrTitle')}
-                className="h-52 w-52 rounded-xl border border-zinc-100 bg-white p-1"
+                className="aspect-square h-48 w-48 max-w-full rounded-xl border border-zinc-100 bg-white object-contain p-1 sm:h-52 sm:w-52"
               />
 
               <div className="mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-100 px-3 py-2">
@@ -500,13 +500,13 @@ export function RegistrationTracker({ id }: { id: string }) {
           )}
 
           {reg.status === 'pending_payment' && reg.qr_url && (
-            <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-950 shadow-md">
+            <div className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-md sm:p-5">
               {/* Always pure white frame for Dark Mode QR scan reliability */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={reg.qr_url}
                 alt={t('vietQrAlt')}
-                className="h-56 w-56 rounded-xl border border-zinc-100 bg-white p-1"
+                className="aspect-square h-48 w-48 max-w-full rounded-xl border border-zinc-100 bg-white object-contain p-1 sm:h-56 sm:w-56"
               />
 
               <p className="mt-3 tabular-nums text-2xl font-black tracking-tight text-zinc-950">
@@ -515,36 +515,36 @@ export function RegistrationTracker({ id }: { id: string }) {
 
               {reg.payment_info && (
                 <div className="mt-3 w-full space-y-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-left text-xs">
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                     <span className="font-semibold text-zinc-500">{t('bankLabel')}</span>
-                    <span className="font-extrabold text-zinc-950">
+                    <span className="min-w-0 font-extrabold text-zinc-950">
                       {reg.payment_info.bankCode}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                     <span className="font-semibold text-zinc-500">
                       {t('accountNumberLabel')}
                     </span>
-                    <div className="flex items-center gap-1.5">
-                      <code className="font-mono font-black text-zinc-950">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <code className="truncate font-mono font-black text-zinc-950">
                         {reg.payment_info.accountNumber}
                       </code>
                       <button
                         type="button"
                         onClick={copyAccountNumber}
                         aria-label={t('copyCode')}
-                        className="inline-flex items-center rounded-md border border-zinc-300 bg-white px-1.5 py-0.5 text-[10px] font-bold text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950"
+                        className="inline-flex shrink-0 items-center rounded-md border border-zinc-300 bg-white px-1.5 py-0.5 text-[10px] font-bold text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950"
                       >
                         {copiedAcc ? t('copied') : t('copyCode')}
                       </button>
                     </div>
                   </div>
                   {reg.payment_info.accountName && (
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                       <span className="font-semibold text-zinc-500">
                         {t('accountNameLabel')}
                       </span>
-                      <span className="truncate font-bold uppercase text-zinc-900">
+                      <span className="min-w-0 truncate font-bold uppercase text-zinc-900">
                         {reg.payment_info.accountName}
                       </span>
                     </div>
@@ -595,40 +595,40 @@ export function RegistrationTracker({ id }: { id: string }) {
 
           {/* Exact Amount Breakdown */}
           <div
-            className={`grid gap-2.5 rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 text-center dark:border-zinc-800 dark:bg-zinc-950 ${
+            className={`grid gap-2.5 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-center dark:border-zinc-800 dark:bg-zinc-950 sm:p-3.5 ${
               totalRefunded > 0 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'
             }`}
           >
-            <div>
+            <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 {t('amountDue')}
               </p>
-              <p className="mt-0.5 tabular-nums text-sm font-extrabold text-zinc-950 dark:text-white">
+              <p className="mt-0.5 tabular-nums text-xs font-extrabold text-zinc-950 dark:text-white sm:text-sm">
                 {formatVnd(reg.amount_due, locale)}
               </p>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 {t('amountPaid')}
               </p>
-              <p className="mt-0.5 tabular-nums text-sm font-extrabold text-emerald-600 dark:text-emerald-400">
+              <p className="mt-0.5 tabular-nums text-xs font-extrabold text-emerald-600 dark:text-emerald-400 sm:text-sm">
                 {formatVnd(reg.amount_paid, locale)}
               </p>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 {t('amountRemaining')}
               </p>
-              <p className="mt-0.5 tabular-nums text-sm font-extrabold text-amber-600 dark:text-amber-400">
+              <p className="mt-0.5 tabular-nums text-xs font-extrabold text-amber-600 dark:text-amber-400 sm:text-sm">
                 {formatVnd(remainingAmount, locale)}
               </p>
             </div>
             {totalRefunded > 0 && (
-              <div>
+              <div className="min-w-0">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                   {t('amountRefunded')}
                 </p>
-                <p className="mt-0.5 tabular-nums text-sm font-extrabold text-zinc-700 dark:text-zinc-300">
+                <p className="mt-0.5 tabular-nums text-xs font-extrabold text-zinc-700 dark:text-zinc-300 sm:text-sm">
                   {formatVnd(totalRefunded, locale)}
                 </p>
               </div>
@@ -645,13 +645,13 @@ export function RegistrationTracker({ id }: { id: string }) {
       </section>
 
       {/* Refund Receiving Account & History */}
-      <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="w-full max-w-full rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
         <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
           {t('refundSectionTitle')}
         </h2>
         <form
           onSubmit={handleSaveRefund}
-          className="mt-3 flex flex-col gap-2.5 sm:flex-row"
+          className="mt-3 flex min-w-0 flex-col gap-2.5 sm:flex-row"
         >
           <input
             type="text"
@@ -660,12 +660,12 @@ export function RegistrationTracker({ id }: { id: string }) {
             onChange={(e) => setRefundAccount(e.target.value)}
             placeholder={t('refundAccountPlaceholder')}
             aria-label={t('refundAccountLabel')}
-            className="h-11 flex-1 rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
+            className="h-11 w-full min-w-0 flex-1 rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
           />
           <button
             type="submit"
             disabled={savingRefund}
-            className="h-11 rounded-xl bg-zinc-950 px-4 text-xs font-extrabold uppercase tracking-wide text-volt transition hover:opacity-90 disabled:opacity-60 dark:bg-volt dark:text-zinc-950"
+            className="h-11 shrink-0 rounded-xl bg-zinc-950 px-4 text-xs font-extrabold uppercase tracking-wide text-volt transition hover:opacity-90 disabled:opacity-60 dark:bg-volt dark:text-zinc-950"
           >
             {t('saveRefundAccount')}
           </button>
@@ -687,7 +687,7 @@ export function RegistrationTracker({ id }: { id: string }) {
                   key={rf.id}
                   className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm dark:border-zinc-800 dark:bg-zinc-950"
                 >
-                  <div>
+                  <div className="min-w-0 break-words">
                     <span className="tabular-nums font-extrabold text-zinc-950 dark:text-white">
                       {formatVnd(rf.amount, locale)}
                     </span>{' '}
@@ -729,7 +729,7 @@ export function RegistrationTracker({ id }: { id: string }) {
       {/* Self-Cancellation Modal / Bottom Drawer */}
       {cancelOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-zinc-950/75 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-          <div className="w-full max-w-md rounded-t-3xl border border-zinc-200 bg-white p-5 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:rounded-3xl sm:p-6">
+          <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-3xl border border-zinc-200 bg-white p-5 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:rounded-3xl sm:p-6">
             <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
               <h2 className="text-base font-extrabold uppercase tracking-tight text-zinc-950 dark:text-white">
                 {t('cancelConfirmTitle')}

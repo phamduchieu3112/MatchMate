@@ -156,11 +156,11 @@ export function MatchClient({
   };
 
   return (
-    <div className="space-y-6 pb-8">
+    <div className="w-full min-w-0 max-w-full space-y-6 pb-8">
       <MyBookingsBanner filterMatchId={match.id} />
 
       {/* Digital Event Ticket Card */}
-      <section className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="relative w-full max-w-full overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         {/* Upper Ticket Body */}
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -197,9 +197,9 @@ export function MatchClient({
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-start gap-2">
+              <div className="flex min-w-0 items-start gap-2">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-rose-500" />
-                <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                <span className="break-words font-medium text-zinc-800 dark:text-zinc-200">
                   {match.location_name}
                 </span>
               </div>
@@ -330,11 +330,11 @@ export function MatchClient({
       </section>
 
       {/* Player Tab Switcher: Details & Roster vs Live Mini Scoreboard */}
-      <div className="flex gap-1.5 rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex w-full max-w-full gap-1.5 rounded-2xl border border-zinc-200 bg-white p-1.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
         <button
           type="button"
           onClick={() => setActiveTab('info')}
-          className={`flex-1 rounded-xl px-3 py-2 text-xs font-extrabold uppercase tracking-wide transition ${
+          className={`min-w-0 flex-1 rounded-xl px-3 py-2 text-xs font-extrabold uppercase tracking-wide transition ${
             activeTab === 'info'
               ? 'bg-volt text-zinc-950 shadow-sm'
               : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'
@@ -345,7 +345,7 @@ export function MatchClient({
         <button
           type="button"
           onClick={() => setActiveTab('scoreboard')}
-          className={`flex-1 rounded-xl px-3 py-2 text-xs font-extrabold uppercase tracking-wide transition ${
+          className={`min-w-0 flex-1 rounded-xl px-3 py-2 text-xs font-extrabold uppercase tracking-wide transition ${
             activeTab === 'scoreboard'
               ? 'bg-volt text-zinc-950 shadow-sm'
               : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'
@@ -425,8 +425,8 @@ export function MatchClient({
           </div>
 
           {maxBookableSlots > 4 && (
-            <div className="flex items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900">
+              <div className="min-w-0">
                 <p className="text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-200">
                   {t('customSlotsLabel')}
                 </p>
@@ -479,7 +479,7 @@ export function MatchClient({
       {/* Clean Roster & Waitlist */}
       <section className="grid gap-4 sm:grid-cols-2">
         {/* Active Roster */}
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="min-w-0 max-w-full rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
               {t('rosterTitle')}{' '}
@@ -536,7 +536,7 @@ export function MatchClient({
         </div>
 
         {/* Waitlist */}
-        <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="min-w-0 max-w-full rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
             {t('waitlistTitle')}{' '}
             <span className="tabular-nums text-zinc-500 dark:text-zinc-400">
@@ -611,7 +611,7 @@ export function MatchClient({
       )}
 
       {/* Sticky Bottom CTA Bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-zinc-200/80 bg-zinc-100/90 px-4 py-3 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/90">
+      <div className="fixed inset-x-0 bottom-0 z-30 w-full max-w-full overflow-x-clip border-t border-zinc-200/80 bg-zinc-100/90 px-4 py-3 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/90">
         <div className="mx-auto max-w-4xl">
           {isBookable ? (
             <button

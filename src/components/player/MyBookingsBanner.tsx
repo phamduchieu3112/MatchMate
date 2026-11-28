@@ -139,13 +139,13 @@ export function MyBookingsBanner({
 
   if (variant === 'section') {
     return (
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="w-full min-w-0 max-w-full rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-950 text-volt dark:bg-volt/15 dark:text-volt">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-950 text-volt dark:bg-volt/15 dark:text-volt">
               <Ticket className="h-4 w-4" />
             </span>
-            <div>
+            <div className="min-w-0">
               <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
                 {t('myBookingsTitle')}
               </h2>
@@ -161,7 +161,7 @@ export function MyBookingsBanner({
             <Link
               key={item.registrationId}
               href={`/dang-ky/${item.registrationId}`}
-              className="group flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-3 transition hover:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-volt"
+              className="group flex min-w-0 max-w-full items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-3 transition hover:border-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-volt"
             >
               <div className="flex items-center gap-2.5">
                 <span className="rounded-md bg-zinc-950 px-2 py-1 font-mono text-xs font-bold text-volt dark:bg-volt dark:text-zinc-950">
@@ -180,7 +180,7 @@ export function MyBookingsBanner({
   }
 
   return (
-    <div className="sticky top-16 z-30 rounded-2xl border border-zinc-200 bg-white/95 p-3 shadow-sm backdrop-blur-md dark:border-volt/30 dark:bg-zinc-900/95">
+    <div className="sticky top-16 z-30 w-full min-w-0 max-w-full rounded-2xl border border-zinc-200 bg-white/95 p-3 shadow-sm backdrop-blur-md dark:border-volt/30 dark:bg-zinc-900/95">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-zinc-900 dark:text-white">
           <Ticket className="h-4 w-4 shrink-0 text-zinc-950 dark:text-volt" />

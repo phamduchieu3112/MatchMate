@@ -177,7 +177,7 @@ export function SplitBillPanel({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="w-full min-w-0 max-w-full space-y-5">
       {/* Post-Match Cost Finalization Form */}
       <form
         onSubmit={handleFinalizeCosts}
@@ -440,17 +440,17 @@ export function SplitBillPanel({
               .map((w) => (
                 <div
                   key={w.contact_normalized}
-                  className="flex items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-xs dark:border-zinc-800 dark:bg-zinc-950"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-xs dark:border-zinc-800 dark:bg-zinc-950"
                 >
-                  <div>
-                    <p className="font-extrabold text-zinc-950 dark:text-white">
+                  <div className="min-w-0">
+                    <p className="truncate font-extrabold text-zinc-950 dark:text-white">
                       {w.player_name}
                     </p>
                     <p className="font-mono text-[11px] text-zinc-500">
                       ***{w.contact_normalized.slice(-4)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex shrink-0 items-center gap-2.5">
                     <span className="tabular-nums text-sm font-black text-emerald-600 dark:text-volt">
                       {formatVnd(w.balance, locale)}
                     </span>
@@ -498,7 +498,7 @@ export function SplitBillPanel({
                 <img
                   src={qrModalRow.qr_url}
                   alt={qrModalRow.player_name}
-                  className="h-56 w-56 rounded-xl border border-zinc-100 p-1"
+                  className="aspect-square h-48 w-48 max-w-full rounded-xl border border-zinc-100 object-contain p-1 sm:h-56 sm:w-56"
                 />
               )}
               <p className="mt-2 tabular-nums text-2xl font-black">

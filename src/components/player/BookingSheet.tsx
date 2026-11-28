@@ -284,7 +284,7 @@ export function BookingSheet({
 
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           {/* Scrollable Form Body */}
-          <div className="flex-1 space-y-3.5 overflow-y-auto px-5 py-4 sm:px-6">
+          <div className="min-w-0 flex-1 space-y-3.5 overflow-y-auto px-5 py-4 sm:px-6">
             {isWithinCutoff && (
               <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs font-medium text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/50 dark:text-amber-200">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -520,7 +520,9 @@ export function BookingSheet({
               <span>{t('fieldPinHint')}</span>
             </div>
 
-            <TurnstileWidget onVerify={handleVerify} onExpire={handleExpire} />
+            <div className="max-w-full overflow-x-clip">
+              <TurnstileWidget onVerify={handleVerify} onExpire={handleExpire} />
+            </div>
           </div>
 
           {/* Sticky Footer */}

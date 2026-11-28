@@ -224,7 +224,7 @@ export function MatchDetailTabs({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="w-full min-w-0 max-w-full space-y-5">
       {/* Top Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Link
@@ -335,18 +335,18 @@ export function MatchDetailTabs({
 
         {/* Stat Strip */}
         <div className="grid grid-cols-2 gap-3 p-4 sm:p-5">
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 text-center dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="min-w-0 rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 text-center dark:border-zinc-800 dark:bg-zinc-950">
             <div className="mx-auto mb-1.5 h-1 w-10 rounded-full bg-volt" />
-            <p className="tabular-nums text-2xl font-black text-zinc-950 dark:text-white">
+            <p className="tabular-nums text-xl font-black text-zinc-950 dark:text-white sm:text-2xl">
               {match.slots_taken}/{match.max_slots}
             </p>
             <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               {t('spotsOccupied')}
             </p>
           </div>
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 text-center dark:border-zinc-800 dark:bg-zinc-950">
+          <div className="min-w-0 rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 text-center dark:border-zinc-800 dark:bg-zinc-950">
             <div className="mx-auto mb-1.5 h-1 w-10 rounded-full bg-volt" />
-            <p className="tabular-nums text-2xl font-black text-zinc-950 dark:text-white">
+            <p className="tabular-nums text-lg font-black text-zinc-950 dark:text-white sm:text-2xl">
               {formatVnd(totalRevenue, locale)}
             </p>
             <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
@@ -443,8 +443,8 @@ export function MatchDetailTabs({
 
           {/* Search, QR Scanner & Status Filter */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-1 gap-2">
-              <div className="relative flex-1">
+            <div className="flex min-w-0 flex-1 flex-wrap gap-2 sm:flex-nowrap">
+              <div className="relative min-w-[160px] flex-1">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 <input
                   type="text"
@@ -671,7 +671,7 @@ export function MatchDetailTabs({
                         {p.content}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <select
                         value={assignTarget[p.id] ?? ''}
                         onChange={(e) =>
@@ -680,7 +680,7 @@ export function MatchDetailTabs({
                             [p.id]: e.target.value,
                           }))
                         }
-                        className="h-9 rounded-lg border border-zinc-300 bg-zinc-50 px-2 text-xs text-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
+                        className="h-9 min-w-0 flex-1 rounded-lg border border-zinc-300 bg-zinc-50 px-2 text-xs text-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white"
                       >
                         <option value="">{t('selectOption')}</option>
                         {registrations.map((r) => (
@@ -697,7 +697,7 @@ export function MatchDetailTabs({
                             registrationId: assignTarget[p.id],
                           })
                         }
-                        className="h-9 rounded-lg bg-volt px-3 text-xs font-extrabold text-zinc-950 disabled:opacity-50"
+                        className="h-9 shrink-0 rounded-lg bg-volt px-3 text-xs font-extrabold text-zinc-950 disabled:opacity-50"
                       >
                         {t('hostAssignPayment')}
                       </button>

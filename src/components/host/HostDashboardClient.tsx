@@ -96,7 +96,7 @@ export function HostDashboardClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full min-w-0 max-w-full space-y-6">
       {/* Top Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -160,7 +160,7 @@ export function HostDashboardClient({
 
       {hostPaymentStatus?.isConfigured && hostPaymentStatus.paymentInfo && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-xs shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-300">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 text-zinc-600 dark:text-zinc-300">
             <Landmark className="h-4 w-4 shrink-0 text-zinc-950 dark:text-volt" />
             <span className="font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
               {t('hostPaymentAccountLabel')}:
@@ -177,35 +177,35 @@ export function HostDashboardClient({
               </span>
             )}
           </div>
-          <span className="font-mono text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
+          <span className="max-w-full truncate font-mono text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">
             {hostPaymentStatus.email}
           </span>
         </div>
       )}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="relative min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-4">
           <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-volt" />
-          <p className="text-center tabular-nums text-2xl font-black text-zinc-950 dark:text-white">
+          <p className="text-center tabular-nums text-xl font-black text-zinc-950 dark:text-white sm:text-2xl">
             {matchList.length}
           </p>
           <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             {t('hostStatTotalMatches')}
           </p>
         </div>
-        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="relative min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-4">
           <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-emerald-400" />
-          <p className="text-center tabular-nums text-2xl font-black text-zinc-950 dark:text-white">
+          <p className="text-center tabular-nums text-xl font-black text-zinc-950 dark:text-white sm:text-2xl">
             {openCount}
           </p>
           <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             {t('hostStatOpenMatches')}
           </p>
         </div>
-        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="relative min-w-0 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-4">
           <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-volt" />
-          <p className="text-center tabular-nums text-2xl font-black text-zinc-950 dark:text-white">
+          <p className="text-center tabular-nums text-xl font-black text-zinc-950 dark:text-white sm:text-2xl">
             {totalSlotsTaken}
           </p>
           <p className="mt-0.5 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
@@ -235,7 +235,7 @@ export function HostDashboardClient({
             return (
               <div
                 key={m.id}
-                className="flex flex-col justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 sm:flex-row sm:items-center"
+                className="flex min-w-0 max-w-full flex-col justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700 sm:flex-row sm:items-center"
               >
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2">

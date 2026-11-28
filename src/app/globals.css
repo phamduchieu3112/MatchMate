@@ -10,6 +10,12 @@
   color-scheme: dark;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   min-height: 100dvh;
 }

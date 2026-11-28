@@ -8,9 +8,27 @@ interface MatchMateLogoProps {
 }
 
 const SIZE_MAP = {
-  sm: { icon: 32, text: 'text-base', gap: 'gap-2', badge: 'text-[10px] px-1.5 py-0.5' },
-  md: { icon: 38, text: 'text-xl', gap: 'gap-2.5', badge: 'text-[11px] px-2 py-0.5' },
-  lg: { icon: 48, text: 'text-2xl sm:text-3xl', gap: 'gap-3', badge: 'text-xs px-2 py-0.5' },
+  sm: {
+    icon: 32,
+    iconClass: 'h-7 w-7 sm:h-8 sm:w-8',
+    text: 'text-[15px] sm:text-base',
+    gap: 'gap-1.5 sm:gap-2',
+    badge: 'text-[10px] px-1.5 py-0.5',
+  },
+  md: {
+    icon: 38,
+    iconClass: 'h-[38px] w-[38px]',
+    text: 'text-xl',
+    gap: 'gap-2.5',
+    badge: 'text-[11px] px-2 py-0.5',
+  },
+  lg: {
+    icon: 48,
+    iconClass: 'h-12 w-12',
+    text: 'text-2xl sm:text-3xl',
+    gap: 'gap-3',
+    badge: 'text-xs px-2 py-0.5',
+  },
 } as const;
 
 export function MatchMateLogo({
@@ -30,7 +48,7 @@ export function MatchMateLogo({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden="true"
-        className="shrink-0 drop-shadow-sm"
+        className={`${dims.iconClass} shrink-0 drop-shadow-sm`}
       >
         {/* Rounded squircle obsidian base with crisp border */}
         <rect

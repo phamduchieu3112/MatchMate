@@ -289,12 +289,12 @@ export function MiniScoreboardTab({
   const hasEnoughPlayers = confirmedPlayers.length >= minRequiredPlayers;
 
   return (
-    <div className="space-y-5">
+    <div className="w-full min-w-0 max-w-full space-y-5">
       {/* Live Leaderboard & Recap CTA */}
-      <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-zinc-950 dark:text-volt" />
+          <div className="flex min-w-0 items-center gap-2">
+            <Trophy className="h-5 w-5 shrink-0 text-zinc-950 dark:text-volt" />
             <h2 className="text-sm font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
               {t('scoreLeaderboardTitle')}
             </h2>
@@ -305,35 +305,35 @@ export function MiniScoreboardTab({
               type="button"
               onClick={() => void fetchGames()}
               aria-label={t('refresh')}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-600 transition hover:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-volt"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 text-zinc-600 transition hover:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-volt"
             >
               <RefreshCw className="h-4 w-4" />
             </button>
             <button
               type="button"
               onClick={() => void handleOpenRecap()}
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-volt px-3.5 text-xs font-extrabold uppercase tracking-wide text-zinc-950 shadow-sm transition hover:bg-volt-hover"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-volt px-3.5 text-xs font-extrabold uppercase tracking-wide text-zinc-950 shadow-sm transition hover:bg-volt-hover"
             >
-              <ImageIcon className="h-4 w-4" />
+              <ImageIcon className="h-4 w-4 shrink-0" />
               <span>{t('scoreCreateRecapBtn')}</span>
             </button>
           </div>
         </div>
 
         {mvp && (
-          <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-volt/50 bg-zinc-950 px-4 py-3 text-white">
-            <div className="flex items-center gap-2.5">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-volt text-zinc-950">
+          <div className="mt-3 flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-2xl border border-volt/50 bg-zinc-950 px-4 py-3 text-white">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-volt text-zinc-950">
                 <Award className="h-5 w-5" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <p className="text-[10px] font-extrabold uppercase tracking-widest text-volt">
                   ★ {t('scoreMvpBadge')}
                 </p>
-                <p className="text-sm font-black">{mvp.name}</p>
+                <p className="truncate text-sm font-black">{mvp.name}</p>
               </div>
             </div>
-            <div className="text-right tabular-nums text-xs">
+            <div className="shrink-0 text-right tabular-nums text-xs">
               <p className="font-black text-volt">{mvp.winRate}% WIN</p>
               <p className="text-zinc-400">
                 {mvp.wins}T - {mvp.losses}B ({mvp.pointDiff >= 0 ? '+' : ''}
@@ -348,7 +348,7 @@ export function MiniScoreboardTab({
             {t('scoreNoGamesYet')}
           </p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-4 max-w-full overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead>
                 <tr className="border-b border-zinc-200 text-[11px] font-extrabold uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
@@ -404,7 +404,7 @@ export function MiniScoreboardTab({
       </section>
 
       {/* Create New Game Card */}
-      <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <section className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-zinc-950 dark:text-volt" />
@@ -555,7 +555,7 @@ export function MiniScoreboardTab({
             return (
               <div
                 key={game.id}
-                className="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-5"
+                className="min-w-0 max-w-full overflow-hidden rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-5"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
@@ -590,22 +590,22 @@ export function MiniScoreboardTab({
 
                 {/* Teams Banner */}
                 <div className="mt-3 grid grid-cols-11 items-center gap-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-950">
-                  <div className="col-span-5 text-left">
+                  <div className="col-span-5 min-w-0 text-left">
                     <p className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">
                       {t('scoreTeamA')}
                     </p>
-                    <p className="mt-0.5 text-sm font-extrabold text-zinc-950 dark:text-white">
+                    <p className="mt-0.5 break-words text-sm font-extrabold text-zinc-950 dark:text-white">
                       {game.team_a_players.map((p) => p.name).join(' / ')}
                     </p>
                   </div>
                   <div className="col-span-1 text-center text-xs font-black text-zinc-400">
                     VS
                   </div>
-                  <div className="col-span-5 text-right">
+                  <div className="col-span-5 min-w-0 text-right">
                     <p className="text-[10px] font-extrabold uppercase tracking-wider text-zinc-500">
                       {t('scoreTeamB')}
                     </p>
-                    <p className="mt-0.5 text-sm font-extrabold text-zinc-950 dark:text-white">
+                    <p className="mt-0.5 break-words text-sm font-extrabold text-zinc-950 dark:text-white">
                       {game.team_b_players.map((p) => p.name).join(' / ')}
                     </p>
                   </div>
@@ -616,13 +616,13 @@ export function MiniScoreboardTab({
                   {currentSets.map((set, sIdx) => (
                     <div
                       key={sIdx}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950/60"
+                      className="flex flex-col items-center gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 px-2.5 py-2.5 dark:border-zinc-800 dark:bg-zinc-950/60 sm:flex-row sm:justify-between sm:px-3 sm:py-2"
                     >
                       <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-500">
                         {t('scoreSetLabel', { index: sIdx + 1 })}
                       </span>
 
-                      <div className="flex flex-1 items-center justify-center gap-2">
+                      <div className="flex w-full max-w-full items-center justify-center gap-1.5 sm:w-auto sm:flex-1 sm:gap-2">
                         {/* Side A */}
                         <div className="flex items-center gap-1">
                           {(!isCompleted || isHost) && (
@@ -631,7 +631,7 @@ export function MiniScoreboardTab({
                               onClick={() =>
                                 updateDraftScore(game.id, sIdx, 'a', set.a - 1)
                               }
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-300 bg-white text-lg font-black text-zinc-800 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                              className="inline-flex h-9 w-8 items-center justify-center rounded-xl border border-zinc-300 bg-white text-base font-black text-zinc-800 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white min-[360px]:w-9 sm:h-11 sm:w-11 sm:text-lg"
                             >
                               −
                             </button>
@@ -650,7 +650,7 @@ export function MiniScoreboardTab({
                                 Number.parseInt(e.target.value, 10) || 0
                               )
                             }
-                            className="h-11 w-14 rounded-xl border border-zinc-300 bg-white text-center font-mono text-xl font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-volt"
+                            className="h-9 w-10 rounded-xl border border-zinc-300 bg-white text-center font-mono text-lg font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-volt min-[360px]:w-11 sm:h-11 sm:w-14 sm:text-xl"
                           />
                           {(!isCompleted || isHost) && (
                             <button
@@ -658,14 +658,14 @@ export function MiniScoreboardTab({
                               onClick={() =>
                                 updateDraftScore(game.id, sIdx, 'a', set.a + 1)
                               }
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-volt text-lg font-black text-zinc-950 active:scale-95"
+                              className="inline-flex h-9 w-8 items-center justify-center rounded-xl bg-volt text-base font-black text-zinc-950 active:scale-95 min-[360px]:w-9 sm:h-11 sm:w-11 sm:text-lg"
                             >
                               +
                             </button>
                           )}
                         </div>
 
-                        <span className="font-mono text-lg font-black text-zinc-400">
+                        <span className="font-mono text-base font-black text-zinc-400 sm:text-lg">
                           :
                         </span>
 
@@ -677,7 +677,7 @@ export function MiniScoreboardTab({
                               onClick={() =>
                                 updateDraftScore(game.id, sIdx, 'b', set.b - 1)
                               }
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-zinc-300 bg-white text-lg font-black text-zinc-800 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                              className="inline-flex h-9 w-8 items-center justify-center rounded-xl border border-zinc-300 bg-white text-base font-black text-zinc-800 active:scale-95 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white min-[360px]:w-9 sm:h-11 sm:w-11 sm:text-lg"
                             >
                               −
                             </button>
@@ -696,7 +696,7 @@ export function MiniScoreboardTab({
                                 Number.parseInt(e.target.value, 10) || 0
                               )
                             }
-                            className="h-11 w-14 rounded-xl border border-zinc-300 bg-white text-center font-mono text-xl font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-volt"
+                            className="h-9 w-10 rounded-xl border border-zinc-300 bg-white text-center font-mono text-lg font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-volt min-[360px]:w-11 sm:h-11 sm:w-14 sm:text-xl"
                           />
                           {(!isCompleted || isHost) && (
                             <button
@@ -704,7 +704,7 @@ export function MiniScoreboardTab({
                               onClick={() =>
                                 updateDraftScore(game.id, sIdx, 'b', set.b + 1)
                               }
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-volt text-lg font-black text-zinc-950 active:scale-95"
+                              className="inline-flex h-9 w-8 items-center justify-center rounded-xl bg-volt text-base font-black text-zinc-950 active:scale-95 min-[360px]:w-9 sm:h-11 sm:w-11 sm:text-lg"
                             >
                               +
                             </button>

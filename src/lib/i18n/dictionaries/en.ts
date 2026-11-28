@@ -51,6 +51,7 @@ export const en: Dictionary = {
   homeFeatureNoAccount: 'No account needed',
   homeRecentBookings: 'Recent passes on this device',
   hostLink: 'For organizers',
+  hostLinkShort: 'Host',
   homeHostCtaSub: 'Create sessions, track bookings and reconcile payments.',
   myBookingsTitle: 'My bookings',
   myBookingsOpen: 'Open pass',

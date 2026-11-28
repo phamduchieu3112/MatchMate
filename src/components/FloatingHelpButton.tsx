@@ -58,8 +58,8 @@ export function FloatingHelpButton() {
   return (
     <div
       ref={containerRef}
-      className={`fixed right-4 z-40 flex flex-col items-end gap-3 sm:right-6 ${
-        hasStickyBottomBar ? 'bottom-20' : 'bottom-5 sm:bottom-6'
+      className={`fixed right-4 z-40 flex flex-col items-end gap-2.5 sm:right-6 sm:gap-3 ${
+        hasStickyBottomBar ? 'bottom-20' : 'bottom-4 sm:bottom-6'
       }`}
     >
       {/* Speed-dial Messenger Pop-up */}
@@ -85,8 +85,8 @@ export function FloatingHelpButton() {
           <span className="whitespace-nowrap rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-xs font-bold text-zinc-900 shadow-lg transition group-hover:border-zinc-300 group-hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:group-hover:border-zinc-600">
             {t('helpMessengerLabel')}
           </span>
-          <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-tr from-[#006AFF] via-[#0099FF] to-[#A033FF] text-white shadow-lg shadow-[#006AFF]/30 ring-2 ring-white/80 transition-transform duration-150 group-hover:scale-105 group-active:scale-95 group-focus-visible:ring-2 group-focus-visible:ring-volt dark:ring-zinc-900">
-            <MessengerIcon className="h-6 w-6" />
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-[#006AFF] via-[#0099FF] to-[#A033FF] text-white shadow-lg shadow-[#006AFF]/30 ring-2 ring-white/80 transition-transform duration-150 group-hover:scale-105 group-active:scale-95 group-focus-visible:ring-2 group-focus-visible:ring-volt dark:ring-zinc-900 sm:h-12 sm:w-12">
+            <MessengerIcon className="h-5 w-5 sm:h-6 sm:w-6" />
           </span>
         </a>
       </div>
@@ -99,7 +99,7 @@ export function FloatingHelpButton() {
         aria-controls="floating-help-menu"
         aria-label={open ? t('helpCloseLabel') : t('helpButtonLabel')}
         title={open ? t('helpCloseLabel') : t('helpButtonLabel')}
-        className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-zinc-800/10 bg-zinc-950 text-volt shadow-lg shadow-zinc-950/25 transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-volt focus-visible:ring-offset-2 dark:border-volt/30 dark:bg-volt dark:text-zinc-950 dark:shadow-volt dark:hover:bg-volt-hover dark:focus-visible:ring-offset-zinc-950"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-zinc-800/10 bg-zinc-950 text-volt opacity-90 shadow-lg shadow-zinc-950/25 transition-all duration-200 hover:scale-105 hover:opacity-100 hover:shadow-xl active:scale-95 focus:outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-volt focus-visible:ring-offset-2 dark:border-volt/30 dark:bg-volt dark:text-zinc-950 dark:shadow-volt dark:hover:bg-volt-hover dark:focus-visible:ring-offset-zinc-950 sm:h-12 sm:w-12 sm:opacity-100"
       >
         <span
           className={`inline-flex items-center justify-center transition-transform duration-200 ${
@@ -107,9 +107,9 @@ export function FloatingHelpButton() {
           }`}
         >
           {open ? (
-            <X className="h-5 w-5 stroke-[2.5]" />
+            <X className="h-4 w-4 stroke-[2.5] sm:h-5 sm:w-5" />
           ) : (
-            <span className="text-xl font-black leading-none select-none">?</span>
+            <span className="select-none text-lg font-black leading-none sm:text-xl">?</span>
           )}
         </span>
       </button>
