@@ -225,7 +225,7 @@ export const en: Dictionary = {
   noteOptionalPlaceholder: 'Note (optional)',
 
   // Enum translations
-  payMethodSepay: 'VietQR / SePay',
+  payMethodSepay: 'VietQR',
   payMethodCash: 'Cash',
   payMethodNone: 'Unpaid',
   refundStatusPendingReview: 'Pending Review',

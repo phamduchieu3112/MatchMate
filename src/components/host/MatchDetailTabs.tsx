@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -664,7 +664,6 @@ export function MatchDetailTabs({
                   r.slot_genders,
                   r.slots
                 );
-                const isMultiSlot = personLabels.length > 1;
 
                 return (
                   <div
@@ -680,96 +679,54 @@ export function MatchDetailTabs({
                         {getInitials(personLabels[0] ?? r.display_name)}
                       </span>
                       <div className="min-w-0 flex-1">
-                        {isMultiSlot ? (
-                          <>
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="rounded-md bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-extrabold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
-                                ×{r.slots}
-                              </span>
-                              <span
-                                className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${regStatusBadge(
-                                  r.status
-                                )}`}
-                              >
-                                {translateRegStatus(r.status, t)}
-                              </span>
-                            </div>
-                            <ul className="mt-1.5 space-y-1">
-                              {personLabels.map((personName, sIdx) => {
-                                const isFemale =
-                                  (slotGenders[sIdx] ?? 'male') === 'female';
-                                return (
-                                  <li
-                                    key={`${r.id}-slot-${sIdx}`}
-                                    className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm font-extrabold leading-snug text-zinc-950 dark:text-white"
-                                  >
-                                    <span
-                                      aria-hidden="true"
-                                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-volt/80"
-                                    />
-                                    <span className="min-w-0 whitespace-normal break-words">
-                                      {personName}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        void handleToggleRegGender(r, sIdx)
-                                      }
-                                      aria-pressed={isFemale}
-                                      className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold transition ${
-                                        isFemale
-                                          ? 'bg-rose-500/15 text-rose-700 hover:bg-rose-500/25 dark:bg-rose-400/20 dark:text-rose-300'
-                                          : 'bg-sky-500/15 text-sky-700 hover:bg-sky-500/25 dark:bg-sky-400/20 dark:text-sky-300'
-                                      }`}
-                                    >
-                                      {isFemale
-                                        ? t('genderFemale')
-                                        : t('genderMale')}
-                                    </button>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          </>
-                        ) : (
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <p className="min-w-0 whitespace-normal break-words text-sm font-extrabold leading-snug text-zinc-950 dark:text-white">
-                              {personLabels[0]}
-                            </p>
-                            {(() => {
-                              const isFemale =
-                                (slotGenders[0] ?? 'male') === 'female';
-                              return (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    void handleToggleRegGender(r, 0)
-                                  }
-                                  aria-pressed={isFemale}
-                                  className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold transition ${
-                                    isFemale
-                                      ? 'bg-rose-500/15 text-rose-700 hover:bg-rose-500/25 dark:bg-rose-400/20 dark:text-rose-300'
-                                      : 'bg-sky-500/15 text-sky-700 hover:bg-sky-500/25 dark:bg-sky-400/20 dark:text-sky-300'
-                                  }`}
-                                >
-                                  {isFemale
-                                    ? t('genderFemale')
-                                    : t('genderMale')}
-                                </button>
-                              );
-                            })()}
-                            <span className="shrink-0 rounded-md bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-extrabold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
+                            <span className="rounded-md bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-extrabold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
                               ×{r.slots}
                             </span>
                             <span
-                              className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${regStatusBadge(
+                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${regStatusBadge(
                                 r.status
                               )}`}
                             >
                               {translateRegStatus(r.status, t)}
                             </span>
                           </div>
-                        )}
+                          <ul className="mt-1.5 space-y-1">
+                            {personLabels.map((personName, sIdx) => {
+                              const isFemale =
+                                (slotGenders[sIdx] ?? 'male') === 'female';
+                              return (
+                                <li
+                                  key={`${r.id}-slot-${sIdx}`}
+                                  className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm font-extrabold leading-snug text-zinc-950 dark:text-white"
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className="h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-volt/80"
+                                  />
+                                  <span className="min-w-0 whitespace-normal break-words">
+                                    {personName}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      void handleToggleRegGender(r, sIdx)
+                                    }
+                                    aria-pressed={isFemale}
+                                    className={`inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold transition ${
+                                      isFemale
+                                        ? 'bg-rose-500/15 text-rose-700 hover:bg-rose-500/25 dark:bg-rose-400/20 dark:text-rose-300'
+                                        : 'bg-sky-500/15 text-sky-700 hover:bg-sky-500/25 dark:bg-sky-400/20 dark:text-sky-300'
+                                    }`}
+                                  >
+                                    {isFemale
+                                      ? t('genderFemale')
+                                      : t('genderMale')}
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
                         <p className="mt-1 break-words tabular-nums text-xs text-zinc-500 dark:text-zinc-400">
                           {r.contact ?? '—'} ·{' '}
                           <span className="font-mono font-semibold">{r.payment_code}</span> ·{' '}

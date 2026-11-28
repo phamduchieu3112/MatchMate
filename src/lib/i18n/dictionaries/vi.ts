@@ -223,7 +223,7 @@ export const vi = {
   noteOptionalPlaceholder: 'Ghi chú (không bắt buộc)',
 
   // Enum translations
-  payMethodSepay: 'VietQR / SePay',
+  payMethodSepay: 'VietQR',
   payMethodCash: 'Tiền mặt',
   payMethodNone: 'Chưa thanh toán',
   refundStatusPendingReview: 'Chờ duyệt',
