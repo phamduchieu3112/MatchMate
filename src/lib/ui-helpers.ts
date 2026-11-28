@@ -89,3 +89,24 @@ export function expandRosterForPoster(
 
   return expanded;
 }
+
+/**
+ * Sanitizes raw numeric text input by stripping non-digits and leading zeros
+ * (e.g. "015" -> "15", "03" -> "3", "000" -> "0") and clamping to [0, max].
+ */
+export function sanitizeIntegerInput(
+  raw: string,
+  max: number
+): { text: string; value: number | null } {
+  const digits = raw.replace(/[^0-9]/g, '');
+  if (digits === '') {
+    return { text: '', value: null };
+  }
+  const stripped = digits.replace(/^0+(?=\d)/, '');
+  const parsed = Number.parseInt(stripped, 10);
+  if (!Number.isFinite(parsed)) {
+    return { text: '', value: null };
+  }
+  const clamped = Math.min(max, Math.max(0, parsed));
+  return { text: String(clamped), value: clamped };
+}

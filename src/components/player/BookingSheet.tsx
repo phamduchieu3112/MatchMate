@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { formatVnd } from '@/lib/format';
 import { TurnstileWidget } from '@/components/player/TurnstileWidget';
 import { saveStoredBooking } from '@/components/player/MyBookingsBanner';
@@ -365,16 +366,11 @@ export function BookingSheet({
                     >
                       −
                     </button>
-                    <input
-                      type="number"
+                    <NumericInput
                       min={1}
                       max={maxSlots}
                       value={slots}
-                      onChange={(e) => {
-                        const parsed = Number.parseInt(e.target.value, 10);
-                        if (Number.isNaN(parsed)) return;
-                        updateSlotCount(parsed);
-                      }}
+                      onValueChange={updateSlotCount}
                       aria-label={t('customSlotsLabel')}
                       className="h-8 w-14 rounded-lg border border-zinc-300 bg-white text-center font-mono text-sm font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-volt dark:focus:border-volt"
                     />

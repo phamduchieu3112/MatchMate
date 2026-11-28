@@ -14,6 +14,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { translateMatchStatus } from '@/lib/i18n/helpers';
 import {
   formatMatchDateTime,
@@ -446,16 +447,13 @@ export function MatchClient({
                 >
                   −
                 </button>
-                <input
-                  type="number"
+                <NumericInput
                   min={1}
                   max={maxBookableSlots}
                   value={safeSelectedSlots}
-                  onChange={(e) => {
-                    const parsed = Number.parseInt(e.target.value, 10);
-                    if (Number.isNaN(parsed)) return;
-                    setSelectedSlots(Math.max(1, Math.min(maxBookableSlots, parsed)));
-                  }}
+                  onValueChange={(next) =>
+                    setSelectedSlots(Math.max(1, Math.min(maxBookableSlots, next)))
+                  }
                   aria-label={t('customSlotsLabel')}
                   className="h-9 w-16 rounded-xl border border-zinc-300 bg-zinc-50 text-center font-mono text-sm font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-volt dark:focus:border-volt"
                 />

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import { composeNotesWithTimeRange } from '@/lib/format';
+import { NumericInput } from '@/components/ui/NumericInput';
 
 interface DateTimeParts {
   year: number;
@@ -650,12 +651,13 @@ export function CreateMatchForm() {
 
             <div>
               <label className={labelClass}>{t('fieldMaxSlots')}</label>
-              <input
-                type="number"
+              <NumericInput
                 min={1}
+                max={500}
                 required
                 value={maxSlots}
-                onChange={(e) => setMaxSlots(Number(e.target.value))}
+                onValueChange={setMaxSlots}
+                aria-label={t('fieldMaxSlots')}
                 className={`${inputClass} tabular-nums`}
               />
             </div>
@@ -685,22 +687,24 @@ export function CreateMatchForm() {
 
             <div>
               <label className={labelClass}>{t('fieldCancelCutoff')}</label>
-              <input
-                type="number"
+              <NumericInput
                 min={0}
+                max={168}
                 value={cancelCutoffHours}
-                onChange={(e) => setCancelCutoffHours(Number(e.target.value))}
+                onValueChange={setCancelCutoffHours}
+                aria-label={t('fieldCancelCutoff')}
                 className={`${inputClass} tabular-nums`}
               />
             </div>
 
             <div>
               <label className={labelClass}>{t('fieldHoldMinutes')}</label>
-              <input
-                type="number"
+              <NumericInput
                 min={1}
+                max={120}
                 value={holdMinutes}
-                onChange={(e) => setHoldMinutes(Number(e.target.value))}
+                onValueChange={setHoldMinutes}
+                aria-label={t('fieldHoldMinutes')}
                 className={`${inputClass} tabular-nums`}
               />
             </div>

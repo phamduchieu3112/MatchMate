@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   expandRosterForPoster,
+  sanitizeIntegerInput,
   splitParticipantNames,
 } from '@/lib/ui-helpers';
 
@@ -82,5 +83,24 @@ describe('expandRosterForPoster', () => {
       { displayName: 'An', slots: 2, status: 'confirmed' },
       { displayName: 'Bình', slots: 1, status: 'confirmed' },
     ]);
+  });
+});
+
+describe('sanitizeIntegerInput', () => {
+  it('strips leading zeros cleanly when typing into numeric fields', () => {
+    expect(sanitizeIntegerInput('015', 99)).toEqual({ text: '15', value: 15 });
+    expect(sanitizeIntegerInput('021', 99)).toEqual({ text: '21', value: 21 });
+    expect(sanitizeIntegerInput('03', 500)).toEqual({ text: '3', value: 3 });
+    expect(sanitizeIntegerInput('000', 99)).toEqual({ text: '0', value: 0 });
+  });
+
+  it('handles empty and non-digit characters safely', () => {
+    expect(sanitizeIntegerInput('', 99)).toEqual({ text: '', value: null });
+    expect(sanitizeIntegerInput('abc', 99)).toEqual({ text: '', value: null });
+    expect(sanitizeIntegerInput('21a', 99)).toEqual({ text: '21', value: 21 });
+  });
+
+  it('clamps values to the configured maximum', () => {
+    expect(sanitizeIntegerInput('150', 99)).toEqual({ text: '99', value: 99 });
   });
 });

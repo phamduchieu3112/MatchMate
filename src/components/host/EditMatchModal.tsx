@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
+import { NumericInput } from '@/components/ui/NumericInput';
 import {
   composeNotesWithTimeRange,
   extractMatchTimeRange,
@@ -573,12 +574,13 @@ export function EditMatchModal({
 
             <div>
               <label className={labelClass}>{t('fieldMaxSlots')}</label>
-              <input
-                type="number"
+              <NumericInput
                 min={Math.max(1, match.slots_taken)}
+                max={500}
                 required
                 value={maxSlots}
-                onChange={(e) => setMaxSlots(Number(e.target.value))}
+                onValueChange={setMaxSlots}
+                aria-label={t('fieldMaxSlots')}
                 className={`${inputClass} tabular-nums`}
               />
             </div>
@@ -609,22 +611,24 @@ export function EditMatchModal({
 
             <div>
               <label className={labelClass}>{t('fieldCancelCutoff')}</label>
-              <input
-                type="number"
+              <NumericInput
                 min={0}
+                max={168}
                 value={cancelCutoffHours}
-                onChange={(e) => setCancelCutoffHours(Number(e.target.value))}
+                onValueChange={setCancelCutoffHours}
+                aria-label={t('fieldCancelCutoff')}
                 className={`${inputClass} tabular-nums`}
               />
             </div>
 
             <div>
               <label className={labelClass}>{t('fieldHoldMinutes')}</label>
-              <input
-                type="number"
+              <NumericInput
                 min={1}
+                max={120}
                 value={holdMinutes}
-                onChange={(e) => setHoldMinutes(Number(e.target.value))}
+                onValueChange={setHoldMinutes}
+                aria-label={t('fieldHoldMinutes')}
                 className={`${inputClass} tabular-nums`}
               />
             </div>

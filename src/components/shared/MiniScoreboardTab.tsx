@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
+import { NumericInput } from '@/components/ui/NumericInput';
 import {
   computeLeaderboard,
   expandRosterToSelectablePlayers,
@@ -636,20 +637,15 @@ export function MiniScoreboardTab({
                               −
                             </button>
                           )}
-                          <input
-                            type="number"
+                          <NumericInput
                             min={0}
                             max={99}
                             disabled={isCompleted && !isHost}
                             value={set.a}
-                            onChange={(e) =>
-                              updateDraftScore(
-                                game.id,
-                                sIdx,
-                                'a',
-                                Number.parseInt(e.target.value, 10) || 0
-                              )
+                            onValueChange={(next) =>
+                              updateDraftScore(game.id, sIdx, 'a', next)
                             }
+                            aria-label={`${t('scoreTeamA')} ${t('scoreSetLabel', { index: sIdx + 1 })}`}
                             className="h-9 w-10 rounded-xl border border-zinc-300 bg-white text-center font-mono text-lg font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-volt min-[360px]:w-11 sm:h-11 sm:w-14 sm:text-xl"
                           />
                           {(!isCompleted || isHost) && (
@@ -682,20 +678,15 @@ export function MiniScoreboardTab({
                               −
                             </button>
                           )}
-                          <input
-                            type="number"
+                          <NumericInput
                             min={0}
                             max={99}
                             disabled={isCompleted && !isHost}
                             value={set.b}
-                            onChange={(e) =>
-                              updateDraftScore(
-                                game.id,
-                                sIdx,
-                                'b',
-                                Number.parseInt(e.target.value, 10) || 0
-                              )
+                            onValueChange={(next) =>
+                              updateDraftScore(game.id, sIdx, 'b', next)
                             }
+                            aria-label={`${t('scoreTeamB')} ${t('scoreSetLabel', { index: sIdx + 1 })}`}
                             className="h-9 w-10 rounded-xl border border-zinc-300 bg-white text-center font-mono text-lg font-black tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-900 dark:text-volt min-[360px]:w-11 sm:h-11 sm:w-14 sm:text-xl"
                           />
                           {(!isCompleted || isHost) && (

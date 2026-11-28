@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { QrCode, Wallet, X } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/LocaleProvider';
+import { NumericInput } from '@/components/ui/NumericInput';
 import { formatVnd } from '@/lib/format';
 import { calculateSplitBill } from '@/lib/split-bill';
 import type { ClubWalletSummary, MatchSettlementRow } from '@/lib/types';
@@ -192,12 +193,12 @@ export function SplitBillPanel({
             <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
               {t('hostCourtFee')}
             </label>
-            <input
-              type="number"
+            <NumericInput
               min={0}
               max={100000000}
               value={courtFee}
-              onChange={(e) => setCourtFee(Number(e.target.value) || 0)}
+              onValueChange={setCourtFee}
+              aria-label={t('hostCourtFee')}
               className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt"
             />
           </div>
@@ -206,12 +207,12 @@ export function SplitBillPanel({
             <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
               {t('hostShuttleCount')}
             </label>
-            <input
-              type="number"
+            <NumericInput
               min={0}
               max={500}
               value={shuttleCount}
-              onChange={(e) => setShuttleCount(Number(e.target.value) || 0)}
+              onValueChange={setShuttleCount}
+              aria-label={t('hostShuttleCount')}
               className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt"
             />
           </div>
@@ -220,12 +221,12 @@ export function SplitBillPanel({
             <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
               {t('hostShuttleFee')}
             </label>
-            <input
-              type="number"
+            <NumericInput
               min={0}
               max={100000000}
               value={shuttleFee}
-              onChange={(e) => setShuttleFee(Number(e.target.value) || 0)}
+              onValueChange={setShuttleFee}
+              aria-label={t('hostShuttleFee')}
               className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt"
             />
           </div>
@@ -234,12 +235,12 @@ export function SplitBillPanel({
             <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
               {t('hostExtrasFee')}
             </label>
-            <input
-              type="number"
+            <NumericInput
               min={0}
               max={100000000}
               value={extrasFee}
-              onChange={(e) => setExtrasFee(Number(e.target.value) || 0)}
+              onValueChange={setExtrasFee}
+              aria-label={t('hostExtrasFee')}
               className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm tabular-nums text-zinc-950 outline-none focus:border-zinc-950 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt"
             />
           </div>
