@@ -475,6 +475,25 @@ export const vi = {
   hostNotifErrNoChannels: 'Hãy bật và nhập ít nhất 1 kênh (Telegram, Discord hoặc Zalo) để gửi thử.',
   hostNotifErrDbPermission:
     'Thiếu quyền database (42501). Vui lòng chạy migration 010 trên Supabase.',
+
+  // Host Dashboard v2 & Bulk Scoreboard
+  hostStatConfirmedSlots: 'Slot đã chốt',
+  hostStatActionRequired: 'Cần xử lý',
+  hostTabUpcoming: 'Sắp diễn ra',
+  hostTabPast: 'Đã kết thúc',
+  hostSearchMatchesPlaceholder: 'Tìm tên kèo, địa điểm, #mã...',
+  hostStatusFull: 'Đã đầy',
+  hostCollectedShort: 'Đã thu',
+  hostWaitlistMicro: '+{count} hàng chờ',
+  hostPendingRefundMicro: '{count} chờ hoàn tiền',
+  hostWalletBtn: 'Ví CLB',
+  hostWalletModalTitle: 'Ví CLB & Khoản chưa thu',
+  hostUnpaidDebtsTitle: 'Khoản bù tiền chưa thu',
+  hostUnpaidDebtsEmpty: 'Không có khoản bù tiền chưa thu nào.',
+  hostMoreActions: 'Thao tác khác',
+  scoreSelectAllOngoing: 'Chọn tất cả ({count})',
+  scoreBulkFinishBtn: 'Kết thúc {count} trận',
+  scoreBulkSkippedErr: 'Đã bỏ qua {count} trận có tỉ số hòa hoặc 0-0: {games}',
 } as const;
 
 export type Dictionary = { [K in keyof typeof vi]: string };

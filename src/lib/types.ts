@@ -208,3 +208,20 @@ export interface HostNotificationSettingsPublic {
   zalo_webhook_url: string;
   events: NotificationEventToggles;
 }
+
+export interface HostMatchSummary extends PublicMatch {
+  confirmed_slots: number;
+  waitlist_count: number;
+  collected_amount: number;
+  pending_refunds_count: number;
+  unpaid_deficits_count: number;
+}
+
+export interface HostUnpaidDeficitItem {
+  id: string;
+  match_id: string;
+  match_title: string;
+  short_code: string;
+  player_name: string;
+  net_balance: number;
+}

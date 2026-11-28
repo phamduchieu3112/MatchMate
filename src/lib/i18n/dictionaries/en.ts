@@ -477,4 +477,23 @@ export const en: Dictionary = {
   hostNotifErrNoChannels: 'Enable and configure at least one channel before testing.',
   hostNotifErrDbPermission:
     'Database permission error (42501). Please run migration 010 in Supabase.',
+
+  // Host Dashboard v2 & Bulk Scoreboard
+  hostStatConfirmedSlots: 'Confirmed Slots',
+  hostStatActionRequired: 'Action Needed',
+  hostTabUpcoming: 'Upcoming',
+  hostTabPast: 'Past',
+  hostSearchMatchesPlaceholder: 'Search title, venue, #code...',
+  hostStatusFull: 'Full',
+  hostCollectedShort: 'Collected',
+  hostWaitlistMicro: '+{count} waitlist',
+  hostPendingRefundMicro: '{count} pending refund',
+  hostWalletBtn: 'Club Wallet',
+  hostWalletModalTitle: 'Club Wallet & Unpaid Debts',
+  hostUnpaidDebtsTitle: 'Unpaid Top-up Settlements',
+  hostUnpaidDebtsEmpty: 'No unpaid deficit settlements.',
+  hostMoreActions: 'More actions',
+  scoreSelectAllOngoing: 'Select all ({count})',
+  scoreBulkFinishBtn: 'Finish {count} games',
+  scoreBulkSkippedErr: 'Skipped {count} game(s) with tied or 0-0 scores: {games}',
 };

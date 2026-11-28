@@ -175,3 +175,118 @@ export async function POST(
 
   return NextResponse.json({ game: created }, { status: 201 });
 }
+
+export async function PATCH(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  if (!verifyHostOrigin(request.headers)) {
+    return NextResponse.json({ error: 'invalid_origin' }, { status: 403 });
+  }
+
+  const { id } = await context.params;
+  if (!isValidUuid(id)) {
+    return NextResponse.json({ error: 'invalid_id' }, { status: 400 });
+  }
+
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+    const normIp = normalizeIpForRateLimit(extractClientIp(request.headers));
+    const rateLimitRes = await enforceRateLimits(admin, [
+      { key: `games_write:ip:${normIp}`, limit: 40, windowSeconds: 60 },
+    ]);
+    if (rateLimitRes) return rateLimitRes;
+  } catch {
+    return NextResponse.json({ error: 'service_unavailable' }, { status: 503 });
+  }
+
+  const auth = await authorizeMatchScoreboardAccess(request, admin, id);
+  if (!auth.authorized) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  let body: Record<string, unknown>;
+  try {
+    const parsed = await request.json();
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+    }
+    body = parsed as Record<string, unknown>;
+  } catch {
+    return NextResponse.json({ error: 'invalid_json' }, { status: 400 });
+  }
+
+  if (body.action !== 'bulk_finish' || !Array.isArray(body.items)) {
+    return NextResponse.json({ error: 'invalid_action' }, { status: 400 });
+  }
+
+  if (body.items.length === 0 || body.items.length > 50) {
+    return NextResponse.json({ error: 'invalid_items' }, { status: 400 });
+  }
+
+  const dbClient = auth.hostSupabase ?? admin;
+  const { data: ongoingRows } = await dbClient
+    .from('match_games')
+    .select('id, status')
+    .eq('match_id', id)
+    .eq('status', 'in_progress');
+
+  const ongoingSet = new Set(
+    ((ongoingRows ?? []) as Array<{ id: string }>).map((g) => g.id)
+  );
+
+  const finishedIds: string[] = [];
+  const skipped: Array<{ gameId: string; reason: string }> = [];
+  const completedAt = new Date().toISOString();
+
+  for (const rawItem of body.items) {
+    if (!rawItem || typeof rawItem !== 'object' || Array.isArray(rawItem)) {
+      skipped.push({ gameId: '', reason: 'invalid_item' });
+      continue;
+    }
+    const item = rawItem as { gameId?: unknown; sets?: unknown };
+    const gameId = typeof item.gameId === 'string' ? item.gameId.trim() : '';
+    if (!isValidUuid(gameId) || !ongoingSet.has(gameId)) {
+      skipped.push({ gameId, reason: 'not_in_progress' });
+      continue;
+    }
+
+    const sets = sanitizeSetScores(item.sets);
+    if (!sets) {
+      skipped.push({ gameId, reason: 'invalid_sets' });
+      continue;
+    }
+
+    const hasScore = sets.some((s) => s.a > 0 || s.b > 0);
+    const winner = computeGameWinner(sets);
+    if (!hasScore || winner === 'draw') {
+      skipped.push({ gameId, reason: 'tied_or_empty' });
+      continue;
+    }
+
+    const { error: updErr } = await dbClient
+      .from('match_games')
+      .update({
+        sets,
+        status: 'completed',
+        winner,
+        completed_at: completedAt,
+      })
+      .eq('id', gameId)
+      .eq('match_id', id)
+      .eq('status', 'in_progress');
+
+    if (updErr) {
+      skipped.push({ gameId, reason: 'update_failed' });
+    } else {
+      finishedIds.push(gameId);
+      ongoingSet.delete(gameId);
+    }
+  }
+
+  return NextResponse.json(
+    { ok: true, finishedIds, skipped },
+    { status: 200 }
+  );
+}

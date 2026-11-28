@@ -74,6 +74,11 @@ export function MiniScoreboardTab({
   const [recapUrl, setRecapUrl] = useState('');
   const [renderingRecap, setRenderingRecap] = useState(false);
 
+  // Bulk Finish Ongoing Games
+  const [selectedGameIds, setSelectedGameIds] = useState<string[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkError, setBulkError] = useState('');
+
   const confirmedPlayers = useMemo(
     () => expandRosterToSelectablePlayers(participants, ['confirmed']),
     [participants]
@@ -263,6 +268,99 @@ export function MiniScoreboardTab({
     () => leaderboard.find((row) => row.isMvp) ?? null,
     [leaderboard]
   );
+
+  const ongoingGames = useMemo(
+    () => games.filter((g) => g.status === 'in_progress'),
+    [games]
+  );
+
+  const ongoingIdSet = useMemo(
+    () => new Set(ongoingGames.map((g) => g.id)),
+    [ongoingGames]
+  );
+
+  const selectedOngoingIds = useMemo(
+    () => selectedGameIds.filter((id) => ongoingIdSet.has(id)),
+    [selectedGameIds, ongoingIdSet]
+  );
+
+  const allOngoingSelected =
+    ongoingGames.length > 0 && selectedOngoingIds.length === ongoingGames.length;
+
+  const toggleGameSelected = (gameId: string) => {
+    setSelectedGameIds((prev) =>
+      prev.includes(gameId)
+        ? prev.filter((id) => id !== gameId)
+        : [...prev, gameId]
+    );
+  };
+
+  const toggleSelectAllOngoing = () => {
+    if (allOngoingSelected) {
+      setSelectedGameIds([]);
+    } else {
+      setSelectedGameIds(ongoingGames.map((g) => g.id));
+    }
+  };
+
+  const handleBulkFinish = async () => {
+    if (selectedOngoingIds.length === 0) return;
+    setBulkError('');
+    setBulkBusy(true);
+    try {
+      const items = selectedOngoingIds.map((gameId) => {
+        const game = games.find((g) => g.id === gameId);
+        return {
+          gameId,
+          sets: draftSets[gameId] ?? game?.sets ?? [{ a: 0, b: 0 }],
+        };
+      });
+
+      const res = await fetch(`/api/matches/${matchId}/games`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'bulk_finish', items }),
+      });
+
+      const data = (await res.json()) as {
+        error?: string;
+        finishedIds?: string[];
+        skipped?: Array<{ gameId: string; reason: string }>;
+      };
+
+      if (!res.ok) {
+        setBulkError(data.error === 'unauthorized' ? t('scoreAuthHint') : t('errGeneric'));
+        return;
+      }
+
+      const finishedSet = new Set(data.finishedIds ?? []);
+      setSelectedGameIds((prev) => prev.filter((id) => !finishedSet.has(id)));
+      await fetchGames();
+
+      const skipped = Array.isArray(data.skipped) ? data.skipped : [];
+      if (skipped.length > 0) {
+        const skippedNames = skipped
+          .map((s) => {
+            const g = games.find((item) => item.id === s.gameId);
+            if (!g) return s.gameId.slice(0, 6);
+            return `${g.team_a_players.map((p) => p.name).join('/')} vs ${g.team_b_players
+              .map((p) => p.name)
+              .join('/')}`;
+          })
+          .join('; ');
+        setBulkError(
+          t('scoreBulkSkippedErr', {
+            count: skipped.length,
+            games: skippedNames,
+          })
+        );
+      }
+    } catch {
+      setBulkError(t('errGeneric'));
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const handleOpenRecap = async () => {
     setRecapOpen(true);
@@ -549,6 +647,44 @@ export function MiniScoreboardTab({
       {/* Recorded / Live Games List */}
       {!loading && games.length > 0 && (
         <div className="space-y-3">
+          {ongoingGames.length >= 2 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+              <label className="inline-flex cursor-pointer items-center gap-2 text-xs font-extrabold text-zinc-800 dark:text-zinc-200">
+                <input
+                  type="checkbox"
+                  checked={allOngoingSelected}
+                  onChange={toggleSelectAllOngoing}
+                  className="h-4 w-4 rounded border-zinc-300 accent-volt"
+                />
+                <span>
+                  {t('scoreSelectAllOngoing', { count: ongoingGames.length })}
+                </span>
+              </label>
+
+              <button
+                type="button"
+                disabled={selectedOngoingIds.length === 0 || busy || bulkBusy}
+                onClick={() => void handleBulkFinish()}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-zinc-950 px-3.5 text-xs font-extrabold uppercase tracking-wide text-volt transition hover:opacity-90 disabled:opacity-45 dark:bg-volt dark:text-zinc-950"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>
+                  {bulkBusy
+                    ? t('submitting')
+                    : t('scoreBulkFinishBtn', {
+                        count: selectedOngoingIds.length,
+                      })}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {bulkError && (
+            <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+              {bulkError}
+            </p>
+          )}
+
           {games.map((game) => {
             const currentSets = draftSets[game.id] ?? game.sets;
             const isCompleted = game.status === 'completed';
@@ -560,6 +696,15 @@ export function MiniScoreboardTab({
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
+                    {!isCompleted && (
+                      <input
+                        type="checkbox"
+                        checked={selectedOngoingIds.includes(game.id)}
+                        onChange={() => toggleGameSelected(game.id)}
+                        aria-label={`${game.team_a_players.map((p) => p.name).join('/')} vs ${game.team_b_players.map((p) => p.name).join('/')}`}
+                        className="h-4 w-4 cursor-pointer rounded border-zinc-300 accent-volt"
+                      />
+                    )}
                     <span className="rounded-full bg-zinc-950 px-2.5 py-0.5 text-[10px] font-extrabold uppercase text-volt dark:bg-zinc-800">
                       {game.format === 'singles' ? '1v1' : '2v2'}
                     </span>
