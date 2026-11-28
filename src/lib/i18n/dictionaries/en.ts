@@ -272,7 +272,7 @@ export const en: Dictionary = {
   hostTabRoster: 'Roster',
   hostTabPayments: 'Payments',
   hostTabRefunds: 'Refunds',
-  hostTabSummary: 'Summary & Split',
+  hostTabSummary: 'Split Bill',
   hostLockMatch: 'Lock session',
   hostCancelMatch: 'Cancel session',
   hostCancelMatchConfirm:
@@ -390,7 +390,7 @@ export const en: Dictionary = {
 
   // Module 2: Mini Scoreboard & Recap
   tabInfoRoster: 'Details & Roster',
-  tabScoreboard: 'Scoreboard',
+  tabScoreboard: 'Scores',
   scoreNewGameTitle: 'Create New Game',
   scoreFormatSingles: 'Singles (1v1)',
   scoreFormatDoubles: 'Doubles (2v2)',

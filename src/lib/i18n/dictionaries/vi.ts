@@ -270,7 +270,7 @@ export const vi = {
   hostTabRoster: 'Danh sách',
   hostTabPayments: 'Thanh toán',
   hostTabRefunds: 'Hoàn tiền',
-  hostTabSummary: 'Tin nhắn & Tính tiền',
+  hostTabSummary: 'Chia tiền',
   hostLockMatch: 'Khóa buổi chơi',
   hostCancelMatch: 'Hủy buổi chơi',
   hostCancelMatchConfirm:
@@ -388,7 +388,7 @@ export const vi = {
 
   // Module 2: Mini Scoreboard & Recap
   tabInfoRoster: 'Thông tin & Danh sách',
-  tabScoreboard: 'Tỉ số / Bảng đấu',
+  tabScoreboard: 'Tỉ số',
   scoreNewGameTitle: 'Tạo trận đấu mới',
   scoreFormatSingles: 'Đánh đơn (1v1)',
   scoreFormatDoubles: 'Đánh đôi (2v2)',
