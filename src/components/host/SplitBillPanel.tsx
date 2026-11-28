@@ -178,6 +178,14 @@ export function SplitBillPanel({
     [registrations]
   );
 
+  const regById = useMemo(
+    () => new Map(registrations.map((r) => [r.id, r])),
+    [registrations]
+  );
+
+  const getLiveSettlementName = (row: MatchSettlementRow) =>
+    regById.get(row.registration_id)?.display_name || row.player_name;
+
   const toggleRegSlotGender = async (
     regId: string,
     slotIdx: number,
@@ -652,7 +660,7 @@ export function SplitBillPanel({
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-extrabold text-zinc-950 dark:text-white">
-                        {row.player_name}
+                        {getLiveSettlementName(row)}
                       </span>
                       <span className="rounded bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-bold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
                         ×{row.slots}
@@ -837,7 +845,7 @@ export function SplitBillPanel({
           <div className="w-full max-w-sm rounded-t-3xl border border-zinc-200 bg-white p-5 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:rounded-3xl">
             <div className="flex items-center justify-between border-b border-zinc-200 pb-3 dark:border-zinc-800">
               <h3 className="text-sm font-extrabold uppercase tracking-tight text-zinc-950 dark:text-white">
-                {t('hostSplitQrTitle', { name: qrModalRow.player_name })}
+                {t('hostSplitQrTitle', { name: getLiveSettlementName(qrModalRow) })}
               </h3>
               <button
                 type="button"
@@ -854,7 +862,7 @@ export function SplitBillPanel({
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={qrModalRow.qr_url}
-                  alt={qrModalRow.player_name}
+                  alt={getLiveSettlementName(qrModalRow)}
                   className="aspect-square h-48 w-48 max-w-full rounded-xl border border-zinc-100 object-contain p-1 sm:h-56 sm:w-56"
                 />
               )}

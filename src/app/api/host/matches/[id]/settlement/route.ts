@@ -59,12 +59,16 @@ export async function GET(
       return NextResponse.json({ error: 'match_not_found' }, { status: 404 });
     }
 
-    const [settlementRes, walletRes, resolvedHost] = await Promise.all([
+    const [settlementRes, regsNameRes, walletRes, resolvedHost] = await Promise.all([
       supabase
         .from('match_settlements')
         .select('*')
         .eq('match_id', id)
         .order('created_at', { ascending: true }),
+      supabase
+        .from('registrations')
+        .select('id, display_name')
+        .eq('match_id', id),
       supabase
         .from('club_wallet_ledger')
         .select('*')
@@ -74,8 +78,15 @@ export async function GET(
       resolveMatchHostPayment(admin, id),
     ]);
 
+    const liveNameByRegId = new Map(
+      ((regsNameRes.data ?? []) as Array<{ id: string; display_name: string }>).map(
+        (r) => [r.id, r.display_name]
+      )
+    );
+
     const rawSettlements = (settlementRes.data ?? []) as MatchSettlementRow[];
     const settlements = rawSettlements.map((row) => {
+      const liveName = liveNameByRegId.get(row.registration_id) || row.player_name;
       if (row.settlement_type === 'deficit' && row.net_balance > 0 && row.payment_ref) {
         const bundle = buildHostPaymentClientBundle(
           row.net_balance,
@@ -84,12 +95,14 @@ export async function GET(
         );
         return {
           ...row,
+          player_name: liveName,
           qr_url: bundle.qrUrl,
           transfer_content: bundle.transferContent,
         };
       }
       return {
         ...row,
+        player_name: liveName,
         qr_url: null,
         transfer_content: row.payment_ref,
       };

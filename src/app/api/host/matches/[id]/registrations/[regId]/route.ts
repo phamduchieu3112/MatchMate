@@ -272,6 +272,17 @@ export async function PATCH(
     }
   }
 
+  if (typeof updates.display_name === 'string') {
+    await admin
+      .from('match_settlements')
+      .update({
+        player_name: updates.display_name,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('registration_id', regId)
+      .eq('match_id', id);
+  }
+
   if (nextSlotGenders !== undefined) {
     await admin
       .from('registrations')
