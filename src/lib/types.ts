@@ -1,4 +1,5 @@
 export type MatchStatus = 'open' | 'locked' | 'cancelled' | 'finished';
+export type SlotGender = 'male' | 'female';
 export type RegistrationStatus =
   | 'pending_payment'
   | 'confirmed'
@@ -26,6 +27,7 @@ export interface PublicMatch {
   slots_taken: number;
   notes: string | null;
   created_at: string;
+  male_surcharge_percent?: number;
 }
 
 export interface PublicParticipant {

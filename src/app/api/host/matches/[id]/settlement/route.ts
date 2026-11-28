@@ -2,13 +2,21 @@ import crypto from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireHostMutation } from '@/lib/host-api';
 import { buildHostPaymentClientBundle, resolveMatchHostPayment } from '@/lib/sepay';
-import { aggregateClubWallet, calculateSplitBill } from '@/lib/split-bill';
+import {
+  aggregateClubWallet,
+  calculateSplitBill,
+  normalizeSlotGenders,
+} from '@/lib/split-bill';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   createServerSupabaseClient,
   getAuthenticatedHost,
 } from '@/lib/supabase/server';
-import type { ClubWalletEntry, MatchSettlementRow } from '@/lib/types';
+import type {
+  ClubWalletEntry,
+  MatchSettlementRow,
+  SlotGender,
+} from '@/lib/types';
 import { isValidUuid } from '@/lib/validation';
 
 export const dynamic = 'force-dynamic';
@@ -140,6 +148,7 @@ export async function POST(
   const shuttleFee = Number(body.shuttle_fee_total ?? 0);
   const shuttleCount = Number(body.shuttle_count ?? 0);
   const extrasFee = Number(body.extras_fee_total ?? 0);
+  const maleSurchargePercent = Number(body.male_surcharge_percent ?? 0);
 
   if (
     !Number.isInteger(courtFee) ||
@@ -153,7 +162,10 @@ export async function POST(
     shuttleCount > 500 ||
     !Number.isInteger(extrasFee) ||
     extrasFee < 0 ||
-    extrasFee > 100_000_000
+    extrasFee > 100_000_000 ||
+    !Number.isInteger(maleSurchargePercent) ||
+    maleSurchargePercent < 0 ||
+    maleSurchargePercent > 200
   ) {
     return NextResponse.json({ error: 'invalid_input' }, { status: 400 });
   }
@@ -187,16 +199,35 @@ export async function POST(
     );
   }
 
-  const [regsRes, existingSettlementsRes, resolvedHost] = await Promise.all([
-    auth.supabase
-      .from('registrations')
-      .select('id, display_name, contact, slots, amount_paid, status')
-      .eq('match_id', id)
-      .eq('status', 'confirmed')
-      .order('created_at', { ascending: true }),
-    auth.supabase.from('match_settlements').select('*').eq('match_id', id),
-    resolveMatchHostPayment(admin, id),
-  ]);
+  // Persist male_surcharge_percent via admin (gracefully ignores if migration 011 pending)
+  await admin
+    .from('matches')
+    .update({ male_surcharge_percent: maleSurchargePercent })
+    .eq('id', id);
+
+  const rawGendersMap =
+    body.slot_genders_by_reg &&
+    typeof body.slot_genders_by_reg === 'object' &&
+    !Array.isArray(body.slot_genders_by_reg)
+      ? (body.slot_genders_by_reg as Record<string, unknown>)
+      : null;
+
+  const [regsRes, regGendersRes, existingSettlementsRes, resolvedHost] =
+    await Promise.all([
+      auth.supabase
+        .from('registrations')
+        .select('id, display_name, contact, slots, amount_paid, status')
+        .eq('match_id', id)
+        .eq('status', 'confirmed')
+        .order('created_at', { ascending: true }),
+      admin
+        .from('registrations')
+        .select('id, slot_genders')
+        .eq('match_id', id)
+        .eq('status', 'confirmed'),
+      auth.supabase.from('match_settlements').select('*').eq('match_id', id),
+      resolveMatchHostPayment(admin, id),
+    ]);
 
   const regs = (regsRes.data ?? []) as Array<{
     id: string;
@@ -206,6 +237,31 @@ export async function POST(
     amount_paid: number;
     status: string;
   }>;
+
+  const dbGendersByReg = new Map(
+    (
+      (regGendersRes.data ?? []) as Array<{
+        id: string;
+        slot_genders?: SlotGender[] | null;
+      }>
+    ).map((r) => [r.id, r.slot_genders ?? null])
+  );
+
+  // Persist any host-adjusted per-slot genders
+  if (rawGendersMap) {
+    await Promise.all(
+      regs.map(async (r) => {
+        if (rawGendersMap[r.id] === undefined) return;
+        const normalized = normalizeSlotGenders(rawGendersMap[r.id], r.slots);
+        dbGendersByReg.set(r.id, normalized);
+        await admin
+          .from('registrations')
+          .update({ slot_genders: normalized })
+          .eq('id', r.id)
+          .eq('match_id', id);
+      })
+    );
+  }
 
   const existingByReg = new Map(
     ((existingSettlementsRes.data ?? []) as MatchSettlementRow[]).map((s) => [
@@ -218,11 +274,13 @@ export async function POST(
     courtFee,
     shuttleFee,
     extrasFee,
+    maleSurchargePercent,
     registrations: regs.map((r) => ({
       id: r.id,
       displayName: r.display_name,
       contact: r.contact,
       slots: r.slots,
+      slotGenders: normalizeSlotGenders(dbGendersByReg.get(r.id), r.slots),
       amountPaid: r.amount_paid,
       status: r.status,
     })),

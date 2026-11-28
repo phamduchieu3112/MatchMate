@@ -14,6 +14,7 @@ import {
 import { useLocale } from '@/lib/i18n/LocaleProvider';
 import { NumericInput } from '@/components/ui/NumericInput';
 import { formatVnd } from '@/lib/format';
+import type { SlotGender } from '@/lib/types';
 import { TurnstileWidget } from '@/components/player/TurnstileWidget';
 import { saveStoredBooking } from '@/components/player/MyBookingsBanner';
 
@@ -71,6 +72,7 @@ export function BookingSheet({
   const quickSlotOptions = [1, 2, 3, 4].filter((n) => n <= maxSlots);
 
   const [memberNames, setMemberNames] = useState<string[]>(['']);
+  const [slotGenders, setSlotGenders] = useState<SlotGender[]>(['male']);
   const [contact, setContact] = useState('');
   const [slots, setSlots] = useState(Math.min(maxSlots, Math.max(1, initialSlots)));
   const [pin, setPin] = useState('');
@@ -84,6 +86,11 @@ export function BookingSheet({
     if (!open) return;
     const clampedSlots = Math.min(maxSlots, Math.max(1, initialSlots));
     setSlots(clampedSlots);
+    setSlotGenders((prev) =>
+      Array.from({ length: Math.max(clampedSlots, prev.length, 1) }, (_, idx) =>
+        prev[idx] === 'female' ? 'female' : 'male'
+      )
+    );
     setPin(generateRandomPin());
     setPinCopied(false);
     setIdempotencyKey(generateUuidV4());
@@ -121,6 +128,22 @@ export function BookingSheet({
     setMemberNames((prev) =>
       Array.from({ length: Math.max(clamped, prev.length) }, (_, idx) => prev[idx] ?? '')
     );
+    setSlotGenders((prev) =>
+      Array.from({ length: Math.max(clamped, prev.length) }, (_, idx) =>
+        prev[idx] === 'female' ? 'female' : 'male'
+      )
+    );
+  };
+
+  const updateSlotGender = (index: number, gender: SlotGender) => {
+    setSlotGenders((prev) => {
+      const next = Array.from(
+        { length: Math.max(slots, prev.length) },
+        (_, idx) => (prev[idx] === 'female' ? 'female' : 'male')
+      );
+      next[index] = gender;
+      return next;
+    });
   };
 
   const updateMemberName = (index: number, value: string) => {
@@ -227,6 +250,9 @@ export function BookingSheet({
           matchId,
           name: activeNames[0],
           memberNames: activeNames,
+          slotGenders: Array.from({ length: slots }, (_, idx) =>
+            slotGenders[idx] === 'female' ? 'female' : 'male'
+          ),
           contact: contact.trim(),
           slots,
           pin,
@@ -388,12 +414,38 @@ export function BookingSheet({
               )}
             </div>
 
-            {/* Player Name(s) */}
+            {/* Player Name(s) & Per-Slot Gender */}
             {slots === 1 ? (
-              <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                  {t('fieldName')}
-                </label>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="block text-xs font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                    {t('fieldName')}
+                  </label>
+                  <div
+                    role="group"
+                    aria-label={t('genderLabel')}
+                    className="inline-flex shrink-0 rounded-full border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-800 dark:bg-zinc-950"
+                  >
+                    {(['male', 'female'] as const).map((g) => {
+                      const active = (slotGenders[0] ?? 'male') === g;
+                      return (
+                        <button
+                          key={g}
+                          type="button"
+                          onClick={() => updateSlotGender(0, g)}
+                          aria-pressed={active}
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold transition ${
+                            active
+                              ? 'bg-volt text-zinc-950 shadow-sm'
+                              : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
+                          }`}
+                        >
+                          {g === 'male' ? t('genderMale') : t('genderFemale')}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <input
                   type="text"
                   required
@@ -401,7 +453,7 @@ export function BookingSheet({
                   value={memberNames[0] ?? ''}
                   onChange={(e) => updateMemberName(0, e.target.value)}
                   placeholder={t('fieldNamePlaceholder')}
-                  className="mt-1.5 h-10 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
+                  className="h-10 w-full rounded-xl border border-zinc-300 bg-zinc-50 px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-950 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
                 />
               </div>
             ) : (
@@ -417,26 +469,55 @@ export function BookingSheet({
                 </div>
 
                 <div className="space-y-2.5">
-                  {Array.from({ length: slots }, (_, idx) => (
-                    <div key={idx}>
-                      <label className="block text-[11px] font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                        {t('groupMemberLabel', { index: idx + 1 })}
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        maxLength={60}
-                        value={memberNames[idx] ?? ''}
-                        onChange={(e) => updateMemberName(idx, e.target.value)}
-                        placeholder={
-                          idx === 0
-                            ? t('groupMemberPrimaryPlaceholder')
-                            : t('groupMemberPlaceholder')
-                        }
-                        className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
-                      />
-                    </div>
-                  ))}
+                  {Array.from({ length: slots }, (_, idx) => {
+                    const currentGender = slotGenders[idx] ?? 'male';
+                    return (
+                      <div key={idx}>
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="block text-[11px] font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+                            {t('groupMemberLabel', { index: idx + 1 })}
+                          </label>
+                          <div
+                            role="group"
+                            aria-label={`${t('groupMemberLabel', { index: idx + 1 })} ${t('genderLabel')}`}
+                            className="inline-flex shrink-0 rounded-full border border-zinc-200 bg-white p-0.5 dark:border-zinc-700 dark:bg-zinc-900"
+                          >
+                            {(['male', 'female'] as const).map((g) => {
+                              const active = currentGender === g;
+                              return (
+                                <button
+                                  key={g}
+                                  type="button"
+                                  onClick={() => updateSlotGender(idx, g)}
+                                  aria-pressed={active}
+                                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold transition ${
+                                    active
+                                      ? 'bg-volt text-zinc-950 shadow-sm'
+                                      : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white'
+                                  }`}
+                                >
+                                  {g === 'male' ? t('genderMale') : t('genderFemale')}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <input
+                          type="text"
+                          required
+                          maxLength={60}
+                          value={memberNames[idx] ?? ''}
+                          onChange={(e) => updateMemberName(idx, e.target.value)}
+                          placeholder={
+                            idx === 0
+                              ? t('groupMemberPrimaryPlaceholder')
+                              : t('groupMemberPlaceholder')
+                          }
+                          className="mt-1 h-10 w-full rounded-xl border border-zinc-300 bg-white px-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950 focus:ring-2 focus:ring-zinc-950/15 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:focus:border-volt dark:focus:ring-volt/25"
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

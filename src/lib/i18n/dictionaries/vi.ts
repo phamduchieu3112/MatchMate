@@ -494,6 +494,22 @@ export const vi = {
   scoreSelectAllOngoing: 'Chọn tất cả ({count})',
   scoreBulkFinishBtn: 'Kết thúc {count} trận',
   scoreBulkSkippedErr: 'Đã bỏ qua {count} trận có tỉ số hòa hoặc 0-0: {games}',
+
+  // Gender & Split Bill v2
+  genderLabel: 'Giới tính',
+  genderMale: 'Nam',
+  genderFemale: 'Nữ',
+  hostShuttleUnitPrice: 'Giá 1 quả cầu (VND)',
+  hostShuttleBreakdown: 'Tiền cầu ({count} × {price})',
+  hostGenderSurchargeLabel: 'Chênh lệch Nam / Nữ (%)',
+  hostGenderSurchargeHint: 'Nam đóng cao hơn Nữ theo % đã chọn (0% = chia đều)',
+  hostPlayerGenderAdjustTitle: 'Giới tính từng slot (chỉnh nhanh trước khi chia)',
+  hostDiffLabel: 'Chênh lệch',
+  hostDiffNeedMore: 'Cần thu thêm +{amount}',
+  hostDiffSurplus: 'Dư {amount}',
+  hostDiffExact: 'Đủ 0đ',
+  hostSplitPerSlotMale: 'Thực tế mỗi slot Nam ({count} slot)',
+  hostSplitPerSlotFemale: 'Thực tế mỗi slot Nữ ({count} slot)',
 } as const;
 
 export type Dictionary = { [K in keyof typeof vi]: string };

@@ -87,6 +87,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'invalid_input' }, { status: 400 });
   }
 
+  let slotGenders: Array<'male' | 'female'> = Array.from(
+    { length: slots },
+    () => 'male'
+  );
+  if (body.slotGenders !== undefined) {
+    if (
+      !Array.isArray(body.slotGenders) ||
+      body.slotGenders.length !== slots ||
+      body.slotGenders.some((g) => g !== 'male' && g !== 'female')
+    ) {
+      return NextResponse.json({ error: 'invalid_input' }, { status: 400 });
+    }
+    slotGenders = body.slotGenders as Array<'male' | 'female'>;
+  }
+
   // Verify Turnstile FIRST before writing request_log or hitting DB
   if (!turnstileToken) {
     return NextResponse.json({ error: 'turnstile_required' }, { status: 400 });
@@ -212,6 +227,12 @@ export async function POST(request: NextRequest) {
       amount_due: number;
       expires_at: string | null;
     };
+
+    // Persist per-slot genders (gracefully no-ops if migration 011 is pending)
+    await admin
+      .from('registrations')
+      .update({ slot_genders: slotGenders })
+      .eq('id', row.id);
 
     await admin
       .from('request_idempotency')

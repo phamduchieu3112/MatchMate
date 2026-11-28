@@ -32,14 +32,19 @@ import {
   translateRegStatus,
 } from '@/lib/i18n/helpers';
 import { formatMatchDateTimeRange, formatVnd } from '@/lib/format';
-import { getAvatarTone, getInitials, splitParticipantNames } from '@/lib/ui-helpers';
-import type { PublicMatch } from '@/lib/types';
+import {
+  getAvatarTone,
+  getInitials,
+  splitParticipantNames,
+} from '@/lib/ui-helpers';
+import type { PublicMatch, SlotGender } from '@/lib/types';
 
 export interface HostMatchRow extends PublicMatch {
   court_fee_total: number;
   shuttle_fee_total: number;
   extras_fee_total?: number;
   shuttle_count?: number;
+  male_surcharge_percent?: number;
 }
 
 export interface HostRegistrationRow {
@@ -48,6 +53,7 @@ export interface HostRegistrationRow {
   display_name: string;
   contact: string | null;
   slots: number;
+  slot_genders?: SlotGender[] | null;
   status: string;
   payment_code: string;
   amount_due: number;
@@ -966,6 +972,7 @@ export function MatchDetailTabs({
             initialShuttleFee={match.shuttle_fee_total}
             initialShuttleCount={match.shuttle_count ?? 0}
             initialExtrasFee={match.extras_fee_total ?? 0}
+            initialMaleSurchargePercent={match.male_surcharge_percent ?? 0}
             registrations={registrations}
             onUpdated={() => router.refresh()}
           />

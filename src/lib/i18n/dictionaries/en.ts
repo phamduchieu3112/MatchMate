@@ -496,4 +496,20 @@ export const en: Dictionary = {
   scoreSelectAllOngoing: 'Select all ({count})',
   scoreBulkFinishBtn: 'Finish {count} games',
   scoreBulkSkippedErr: 'Skipped {count} game(s) with tied or 0-0 scores: {games}',
+
+  // Gender & Split Bill v2
+  genderLabel: 'Gender',
+  genderMale: 'Male',
+  genderFemale: 'Female',
+  hostShuttleUnitPrice: 'Shuttlecock unit price (VND)',
+  hostShuttleBreakdown: 'Shuttlecocks ({count} × {price})',
+  hostGenderSurchargeLabel: 'Male / Female surcharge (%)',
+  hostGenderSurchargeHint: 'Male pays X% more than Female (0% = equal split)',
+  hostPlayerGenderAdjustTitle: 'Per-slot gender (adjust before split)',
+  hostDiffLabel: 'Difference',
+  hostDiffNeedMore: 'Need +{amount} more',
+  hostDiffSurplus: 'Surplus {amount}',
+  hostDiffExact: 'Exact 0đ',
+  hostSplitPerSlotMale: 'Actual per Male slot ({count} slots)',
+  hostSplitPerSlotFemale: 'Actual per Female slot ({count} slots)',
 };
