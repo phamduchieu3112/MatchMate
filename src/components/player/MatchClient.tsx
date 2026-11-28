@@ -21,7 +21,7 @@ import {
   formatVnd,
   stripTimeRangeFromNotes,
 } from '@/lib/format';
-import { getAvatarTone, getInitials } from '@/lib/ui-helpers';
+import { getAvatarTone, getInitials, splitParticipantNames } from '@/lib/ui-helpers';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import type { PublicMatch, PublicParticipantsPayload } from '@/lib/types';
 import { MyBookingsBanner } from '@/components/player/MyBookingsBanner';
@@ -495,42 +495,83 @@ export function MatchClient({
             </p>
           ) : (
             <ul className="mt-3 space-y-2">
-              {activeRoster.map((p, idx) => (
-                <li
-                  key={`${p.display_name}-${idx}`}
-                  className="flex items-center justify-between gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-950"
-                >
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <span
-                      className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${getAvatarTone(
-                        p.display_name
-                      )}`}
+              {activeRoster.map((p, idx) => {
+                const parsedNames = splitParticipantNames(p.display_name);
+                const displayNames =
+                  parsedNames.length > 0
+                    ? parsedNames
+                    : [p.display_name.trim() || '—'];
+                const isMultiPerson = displayNames.length > 1;
+
+                return (
+                  <li
+                    key={`${p.display_name}-${idx}`}
+                    className={`flex justify-between gap-2.5 rounded-2xl border border-zinc-200/80 bg-zinc-50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-950 ${
+                      isMultiPerson ? 'items-start' : 'items-center'
+                    }`}
+                  >
+                    <div
+                      className={`flex min-w-0 flex-1 gap-2.5 ${
+                        isMultiPerson ? 'items-start' : 'items-center'
+                      }`}
                     >
-                      {getInitials(p.display_name)}
-                    </span>
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      <span className="truncate text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                        {p.display_name}
+                      <span
+                        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${
+                          isMultiPerson ? 'mt-0.5' : ''
+                        } ${getAvatarTone(p.display_name)}`}
+                      >
+                        {getInitials(displayNames[0])}
                       </span>
+
+                      {isMultiPerson ? (
+                        <ul className="min-w-0 flex-1 space-y-1">
+                          {displayNames.map((personName, nameIdx) => (
+                            <li
+                              key={`${personName}-${nameIdx}`}
+                              className="flex min-w-0 items-start gap-1.5 text-sm font-bold leading-snug text-zinc-900 dark:text-zinc-100"
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-volt/80"
+                              />
+                              <span className="min-w-0 whitespace-normal break-words">
+                                {personName}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="min-w-0 flex-1 whitespace-normal break-words text-sm font-bold leading-snug text-zinc-900 dark:text-zinc-100">
+                          {displayNames[0]}
+                        </span>
+                      )}
+                    </div>
+
+                    <div
+                      className={`flex shrink-0 ${
+                        isMultiPerson
+                          ? 'mt-0.5 flex-col items-end gap-1'
+                          : 'items-center gap-1.5'
+                      }`}
+                    >
+                      {p.status === 'confirmed' ? (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-volt px-2.5 py-1 text-[11px] font-extrabold text-zinc-950">
+                          <Check className="h-3 w-3 stroke-[3]" />
+                          <span>{t('regConfirmed')}</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-400/15 dark:text-amber-400">
+                          <Clock className="h-3 w-3" />
+                          <span>{t('regPendingPayment')}</span>
+                        </span>
+                      )}
                       <span className="shrink-0 rounded-md bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-extrabold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
                         ×{p.slots}
                       </span>
                     </div>
-                  </div>
-
-                  {p.status === 'confirmed' ? (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-volt px-2.5 py-1 text-[11px] font-extrabold text-zinc-950">
-                      <Check className="h-3 w-3 stroke-[3]" />
-                      <span>{t('regConfirmed')}</span>
-                    </span>
-                  ) : (
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 text-[11px] font-bold text-amber-700 dark:bg-amber-400/15 dark:text-amber-400">
-                      <Clock className="h-3 w-3" />
-                      <span>{t('regPendingPayment')}</span>
-                    </span>
-                  )}
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
@@ -550,29 +591,75 @@ export function MatchClient({
             </p>
           ) : (
             <ul className="mt-3 space-y-2">
-              {waitlist.map((p, idx) => (
-                <li
-                  key={`${p.display_name}-w-${idx}`}
-                  className="flex items-center justify-between gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-950"
-                >
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 font-mono text-xs font-extrabold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                      #{idx + 1}
-                    </span>
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      <span className="truncate text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                        {p.display_name}
+              {waitlist.map((p, idx) => {
+                const parsedNames = splitParticipantNames(p.display_name);
+                const displayNames =
+                  parsedNames.length > 0
+                    ? parsedNames
+                    : [p.display_name.trim() || '—'];
+                const isMultiPerson = displayNames.length > 1;
+
+                return (
+                  <li
+                    key={`${p.display_name}-w-${idx}`}
+                    className={`flex justify-between gap-2.5 rounded-2xl border border-zinc-200/80 bg-zinc-50 px-3 py-2.5 dark:border-zinc-800 dark:bg-zinc-950 ${
+                      isMultiPerson ? 'items-start' : 'items-center'
+                    }`}
+                  >
+                    <div
+                      className={`flex min-w-0 flex-1 gap-2.5 ${
+                        isMultiPerson ? 'items-start' : 'items-center'
+                      }`}
+                    >
+                      <span
+                        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-zinc-200 font-mono text-xs font-extrabold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 ${
+                          isMultiPerson ? 'mt-0.5' : ''
+                        }`}
+                      >
+                        #{idx + 1}
+                      </span>
+
+                      {isMultiPerson ? (
+                        <ul className="min-w-0 flex-1 space-y-1">
+                          {displayNames.map((personName, nameIdx) => (
+                            <li
+                              key={`${personName}-w-${nameIdx}`}
+                              className="flex min-w-0 items-start gap-1.5 text-sm font-bold leading-snug text-zinc-900 dark:text-zinc-100"
+                            >
+                              <span
+                                aria-hidden="true"
+                                className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-volt/80"
+                              />
+                              <span className="min-w-0 whitespace-normal break-words">
+                                {personName}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="min-w-0 flex-1 whitespace-normal break-words text-sm font-bold leading-snug text-zinc-900 dark:text-zinc-100">
+                          {displayNames[0]}
+                        </span>
+                      )}
+                    </div>
+
+                    <div
+                      className={`flex shrink-0 ${
+                        isMultiPerson
+                          ? 'mt-0.5 flex-col items-end gap-1'
+                          : 'items-center gap-1.5'
+                      }`}
+                    >
+                      <span className="shrink-0 rounded-full bg-zinc-200 px-2.5 py-1 text-[11px] font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                        {t('regWaitlisted')}
                       </span>
                       <span className="shrink-0 rounded-md bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-extrabold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
                         ×{p.slots}
                       </span>
                     </div>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-zinc-200 px-2.5 py-1 text-[11px] font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-                    {t('regWaitlisted')}
-                  </span>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

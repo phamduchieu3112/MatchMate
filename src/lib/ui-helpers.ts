@@ -38,3 +38,54 @@ export function extractMatchCode(input: string): string {
   }
   return trimmed.replace(/^#/, '').toUpperCase();
 }
+
+/**
+ * Splits a group-booking display_name into individual participant names
+ * on commas, semicolons, newlines, `+`, or `&`, collapsing extra whitespace.
+ */
+export function splitParticipantNames(rawName: string): string[] {
+  if (!rawName || typeof rawName !== 'string') return [];
+  return rawName
+    .split(/[,;\n\r+&]+/)
+    .map((part) => part.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
+export interface PosterRosterItem {
+  displayName: string;
+  slots: number;
+  status: string;
+}
+
+/**
+ * Expands multi-person group bookings into individual roster poster entries
+ * while preserving single-person multi-slot bookings and total slot counts.
+ */
+export function expandRosterForPoster(
+  roster: PosterRosterItem[]
+): PosterRosterItem[] {
+  const expanded: PosterRosterItem[] = [];
+
+  for (const entry of roster) {
+    const names = splitParticipantNames(entry.displayName);
+    if (names.length <= 1) {
+      expanded.push({
+        displayName: names[0] ?? entry.displayName.trim(),
+        slots: entry.slots,
+        status: entry.status,
+      });
+      continue;
+    }
+
+    const extraSlots = Math.max(0, entry.slots - names.length);
+    for (let idx = 0; idx < names.length; idx += 1) {
+      expanded.push({
+        displayName: names[idx],
+        slots: idx === 0 ? 1 + extraSlots : 1,
+        status: entry.status,
+      });
+    }
+  }
+
+  return expanded;
+}

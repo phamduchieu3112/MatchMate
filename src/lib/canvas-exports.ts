@@ -1,4 +1,5 @@
 import QRCode from 'qrcode';
+import { expandRosterForPoster } from '@/lib/ui-helpers';
 import type { PlayerLeaderboardRow } from '@/lib/types';
 
 function drawRoundedRect(
@@ -399,7 +400,8 @@ export async function renderRosterPosterPng(
   );
 
   // 2-column Roster Grid (up to 14 rows visible cleanly)
-  const visibleRoster = input.roster.slice(0, 14);
+  const expandedRoster = expandRosterForPoster(input.roster);
+  const visibleRoster = expandedRoster.slice(0, 14);
   const colWidth = 444;
   for (let i = 0; i < visibleRoster.length; i += 1) {
     const item = visibleRoster[i];
@@ -420,21 +422,24 @@ export async function renderRosterPosterPng(
     ctx.fillStyle = '#B4F000';
     ctx.fillText(`${i + 1}.`, rx + 16, ry + 36);
 
+    const statusTag = item.status === 'confirmed' ? 'ĐÃ ĐÓNG' : 'CHỜ CK';
+    const tagText = item.slots > 1 ? `×${item.slots} · ${statusTag}` : statusTag;
+    ctx.font = '800 14px system-ui, sans-serif';
+    const tagWidth = ctx.measureText(tagText).width;
+    ctx.fillStyle = item.status === 'confirmed' ? '#B4F000' : '#FBBF24';
+    ctx.fillText(tagText, rx + colWidth - 16 - tagWidth, ry + 35);
+
+    const nameMaxWidth = Math.max(160, colWidth - 52 - tagWidth - 28);
     ctx.font = '700 21px system-ui, sans-serif';
     ctx.fillStyle = '#FFFFFF';
-    ctx.fillText(fitText(ctx, item.displayName, 265), rx + 52, ry + 36);
-
-    const statusTag = item.status === 'confirmed' ? 'ĐÃ ĐÓNG' : 'CHỜ CK';
-    ctx.font = '800 14px system-ui, sans-serif';
-    ctx.fillStyle = item.status === 'confirmed' ? '#B4F000' : '#FBBF24';
-    ctx.fillText(`×${item.slots} · ${statusTag}`, rx + 328, ry + 35);
+    ctx.fillText(fitText(ctx, item.displayName, nameMaxWidth), rx + 52, ry + 36);
   }
 
-  if (input.roster.length > 14) {
+  if (expandedRoster.length > 14) {
     ctx.font = '700 18px system-ui, sans-serif';
     ctx.fillStyle = '#A1A1AA';
     ctx.fillText(
-      `+ ${input.roster.length - 14} người chơi khác...`,
+      `+ ${expandedRoster.length - 14} người chơi khác...`,
       84,
       966
     );

@@ -1,3 +1,4 @@
+import { splitParticipantNames } from '@/lib/ui-helpers';
 import type {
   GameFormat,
   GameWinner,
@@ -28,10 +29,7 @@ export function expandRosterToSelectablePlayers(
     if (!allowedStatuses.includes(reg.status)) continue;
 
     const regKeyPrefix = reg.id ?? `row-${regIdx}`;
-    const rawParts = reg.display_name
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const rawParts = splitParticipantNames(reg.display_name);
 
     const names = rawParts.length > 0 ? rawParts : [reg.display_name.trim()];
 

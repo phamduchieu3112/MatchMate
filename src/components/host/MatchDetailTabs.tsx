@@ -32,7 +32,7 @@ import {
   translateRegStatus,
 } from '@/lib/i18n/helpers';
 import { formatMatchDateTimeRange, formatVnd } from '@/lib/format';
-import { getAvatarTone, getInitials } from '@/lib/ui-helpers';
+import { getAvatarTone, getInitials, splitParticipantNames } from '@/lib/ui-helpers';
 import type { PublicMatch } from '@/lib/types';
 
 export interface HostMatchRow extends PublicMatch {
@@ -495,44 +495,85 @@ export function MatchDetailTabs({
             </div>
           ) : (
             <div className="space-y-2">
-              {filteredRegistrations.map((r) => (
-                <div
-                  key={r.id}
-                  className="flex flex-col justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center"
-                >
-                  <div className="flex min-w-0 items-start gap-3">
-                    <span
-                      className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${getAvatarTone(
-                        r.display_name
-                      )}`}
-                    >
-                      {getInitials(r.display_name)}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <p className="truncate text-sm font-extrabold text-zinc-950 dark:text-white">
-                          {r.display_name}
+              {filteredRegistrations.map((r) => {
+                const parsedNames = splitParticipantNames(r.display_name);
+                const displayNames =
+                  parsedNames.length > 0
+                    ? parsedNames
+                    : [r.display_name.trim() || '—'];
+                const isMultiPerson = displayNames.length > 1;
+
+                return (
+                  <div
+                    key={r.id}
+                    className="flex flex-col justify-between gap-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center"
+                  >
+                    <div className="flex min-w-0 flex-1 items-start gap-3">
+                      <span
+                        className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${getAvatarTone(
+                          r.display_name
+                        )}`}
+                      >
+                        {getInitials(displayNames[0])}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        {isMultiPerson ? (
+                          <>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="rounded-md bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-extrabold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
+                                ×{r.slots}
+                              </span>
+                              <span
+                                className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${regStatusBadge(
+                                  r.status
+                                )}`}
+                              >
+                                {translateRegStatus(r.status, t)}
+                              </span>
+                            </div>
+                            <ul className="mt-1.5 space-y-0.5">
+                              {displayNames.map((personName, nameIdx) => (
+                                <li
+                                  key={`${personName}-${nameIdx}`}
+                                  className="flex min-w-0 items-start gap-1.5 text-sm font-extrabold leading-snug text-zinc-950 dark:text-white"
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-400 dark:bg-volt/80"
+                                  />
+                                  <span className="min-w-0 whitespace-normal break-words">
+                                    {personName}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <p className="min-w-0 whitespace-normal break-words text-sm font-extrabold leading-snug text-zinc-950 dark:text-white">
+                              {displayNames[0]}
+                            </p>
+                            <span className="shrink-0 rounded-md bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-extrabold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
+                              ×{r.slots}
+                            </span>
+                            <span
+                              className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${regStatusBadge(
+                                r.status
+                              )}`}
+                            >
+                              {translateRegStatus(r.status, t)}
+                            </span>
+                          </div>
+                        )}
+                        <p className="mt-1 break-words tabular-nums text-xs text-zinc-500 dark:text-zinc-400">
+                          {r.contact ?? '—'} ·{' '}
+                          <span className="font-mono font-semibold">{r.payment_code}</span> ·{' '}
+                          {formatVnd(r.amount_paid, locale)} /{' '}
+                          {formatVnd(r.amount_due, locale)} (
+                          {translatePaymentMethod(r.payment_method, t)})
                         </p>
-                        <span className="rounded-md bg-zinc-200 px-1.5 py-0.5 tabular-nums text-[11px] font-extrabold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
-                          ×{r.slots}
-                        </span>
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${regStatusBadge(
-                            r.status
-                          )}`}
-                        >
-                          {translateRegStatus(r.status, t)}
-                        </span>
                       </div>
-                      <p className="mt-1 tabular-nums text-xs text-zinc-500 dark:text-zinc-400">
-                        {r.contact ?? '—'} ·{' '}
-                        <span className="font-mono font-semibold">{r.payment_code}</span> ·{' '}
-                        {formatVnd(r.amount_paid, locale)} /{' '}
-                        {formatVnd(r.amount_due, locale)} (
-                        {translatePaymentMethod(r.payment_method, t)})
-                      </p>
                     </div>
-                  </div>
 
                   <div className="flex flex-wrap items-center gap-2">
                     {(r.status === 'confirmed' || r.status === 'pending_payment') && (
@@ -626,7 +667,8 @@ export function MatchDetailTabs({
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
