@@ -235,7 +235,6 @@ export function NotificationSettingsModal({
           <div className="py-8 text-center text-xs text-zinc-500">...</div>
         ) : (
           <form onSubmit={handleSave} className="mt-4 space-y-4">
-            {/* Telegram */}
             <div className="space-y-2.5 rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 dark:border-zinc-800 dark:bg-zinc-950">
               <label className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
                 <span>{t('hostNotifTelegram')}</span>
@@ -261,7 +260,6 @@ export function NotificationSettingsModal({
               />
             </div>
 
-            {/* Discord */}
             <div className="space-y-2.5 rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 dark:border-zinc-800 dark:bg-zinc-950">
               <label className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
                 <span>{t('hostNotifDiscord')}</span>
@@ -280,7 +278,6 @@ export function NotificationSettingsModal({
               />
             </div>
 
-            {/* Zalo Webhook */}
             <div className="space-y-2.5 rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 dark:border-zinc-800 dark:bg-zinc-950">
               <label className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-zinc-950 dark:text-white">
                 <span>{t('hostNotifZalo')}</span>
@@ -299,7 +296,6 @@ export function NotificationSettingsModal({
               />
             </div>
 
-            {/* Event Toggles */}
             <div className="space-y-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-3.5 text-xs dark:border-zinc-800 dark:bg-zinc-950">
               <p className="font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                 {t('hostNotifEventsTitle')}

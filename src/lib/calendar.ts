@@ -107,19 +107,16 @@ export function buildMatchIcsContent(input: CalendarMatchInput): string {
     `DESCRIPTION:${escapeIcsText(description)}`,
     ...(input.mapUrl ? [`URL:${input.mapUrl}`] : []),
     'STATUS:CONFIRMED',
-    // Reminder 1: 1 day before
     'BEGIN:VALARM',
     'ACTION:DISPLAY',
     `DESCRIPTION:${escapeIcsText(`Nhắc lịch ngày mai: ${summary}`)}`,
     'TRIGGER:-P1D',
     'END:VALARM',
-    // Reminder 2: 12 hours before
     'BEGIN:VALARM',
     'ACTION:DISPLAY',
     `DESCRIPTION:${escapeIcsText(`Còn 12 giờ nữa tới giờ ra sân: ${summary}`)}`,
     'TRIGGER:-PT12H',
     'END:VALARM',
-    // Reminder 3: 1 hour before
     'BEGIN:VALARM',
     'ACTION:DISPLAY',
     `DESCRIPTION:${escapeIcsText(`Chuẩn bị ra sân sau 1 giờ: ${summary}`)}`,

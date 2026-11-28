@@ -119,7 +119,6 @@ export async function POST(request: NextRequest) {
   try {
     const admin = createAdminClient();
 
-    // Check idempotency hit
     const { data: existingIdem } = await admin
       .from('request_idempotency')
       .select('registration_id')
@@ -171,7 +170,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Atomic rate limiting via check_rate_limit RPC
     const normIp = normalizeIpForRateLimit(ip);
     const rateLimitRes = await enforceRateLimits(admin, [
       { key: `book:ip10m:${normIp}`, limit: 20, windowSeconds: 600 },
@@ -184,7 +182,6 @@ export async function POST(request: NextRequest) {
     ]);
     if (rateLimitRes) return rateLimitRes;
 
-    // Verify requested slots do not exceed the match's configured max_slots
     const { data: matchMeta } = await admin
       .from('matches')
       .select('max_slots, host_id, title, short_code')
@@ -204,7 +201,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'invalid_slots' }, { status: 400 });
     }
 
-    // Execute atomic book_slots RPC
     const { data, error } = await admin.rpc('book_slots', {
       p_match_id: matchId,
       p_name: displayName,

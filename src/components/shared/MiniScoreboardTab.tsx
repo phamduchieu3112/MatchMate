@@ -60,21 +60,16 @@ export function MiniScoreboardTab({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  // Create Game Form
   const [format, setFormat] = useState<GameFormat>('doubles');
   const [teamAKeys, setTeamAKeys] = useState<string[]>(['', '']);
   const [teamBKeys, setTeamBKeys] = useState<string[]>(['', '']);
   const [initialSet, setInitialSet] = useState<SetScore>({ a: 0, b: 0 });
-
-  // Local set score drafts per game
   const [draftSets, setDraftSets] = useState<Record<string, SetScore[]>>({});
 
-  // Recap PNG Modal
   const [recapOpen, setRecapOpen] = useState(false);
   const [recapUrl, setRecapUrl] = useState('');
   const [renderingRecap, setRenderingRecap] = useState(false);
 
-  // Bulk Finish Ongoing Games
   const [selectedGameIds, setSelectedGameIds] = useState<string[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkError, setBulkError] = useState('');

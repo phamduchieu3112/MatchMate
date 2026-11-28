@@ -114,7 +114,6 @@ export async function PATCH(
   const updates: Record<string, unknown> = {};
   let nextSlotGenders: SlotGender[] | undefined;
 
-  // 1. Display name / player_name
   const rawName =
     body.display_name !== undefined ? body.display_name : body.player_name;
   if (rawName !== undefined) {
@@ -125,7 +124,6 @@ export async function PATCH(
     updates.display_name = cleanName;
   }
 
-  // 2. Contact / phone (optional/nullable in schema)
   const rawPhone = body.contact !== undefined ? body.contact : body.phone;
   if (rawPhone !== undefined) {
     if (
@@ -142,7 +140,6 @@ export async function PATCH(
     }
   }
 
-  // 3. Slots
   let targetSlots = existing.slots;
   if (body.slots !== undefined) {
     const parsedSlots = Number(body.slots);
@@ -160,7 +157,6 @@ export async function PATCH(
     }
   }
 
-  // 4. Amount due (optional explicit override)
   if (body.amount_due !== undefined) {
     const parsedDue = Number(body.amount_due);
     if (
@@ -173,7 +169,6 @@ export async function PATCH(
     updates.amount_due = parsedDue;
   }
 
-  // 5. Slot genders (auto-resized if slots changed)
   if (body.slot_genders !== undefined) {
     if (
       !Array.isArray(body.slot_genders) ||
@@ -189,7 +184,6 @@ export async function PATCH(
     nextSlotGenders = normalizeSlotGenders(existing.slot_genders, targetSlots);
   }
 
-  // 6. Paid amount / amount_paid
   const rawPaid =
     body.amount_paid !== undefined ? body.amount_paid : body.paid_amount;
   if (rawPaid !== undefined) {
@@ -204,7 +198,6 @@ export async function PATCH(
     updates.amount_paid = parsedPaid;
   }
 
-  // 7. Status
   if (body.status !== undefined) {
     if (
       typeof body.status !== 'string' ||
@@ -235,7 +228,6 @@ export async function PATCH(
     }
   }
 
-  // 8. Payment method, refund account info, checked_in
   if (body.payment_method !== undefined) {
     if (
       typeof body.payment_method !== 'string' ||
@@ -291,7 +283,6 @@ export async function PATCH(
       .eq('match_id', id);
   }
 
-  // Recompute match.slots_taken if slots or status changed
   let nextSlotsTaken: number | undefined;
   if (updates.slots !== undefined || updates.status !== undefined) {
     const { data: activeRegs } = await admin

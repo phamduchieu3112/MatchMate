@@ -65,7 +65,6 @@ export function AppHeader() {
         </Link>
 
         <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
-          {/* Compact Host Portal button */}
           {!isHostRoute && (
             <Link
               href="/host"
@@ -77,7 +76,6 @@ export function AppHeader() {
             </Link>
           )}
 
-          {/* Compact 1-tap locale toggle on mobile (< 640px) */}
           <button
             type="button"
             onClick={() => setLocale(locale === 'vi' ? 'en' : 'vi')}
@@ -88,7 +86,6 @@ export function AppHeader() {
             {locale.toUpperCase()}
           </button>
 
-          {/* Segmented VI | EN pill toggle on sm:+ */}
           <div
             role="group"
             aria-label={t('langLabel')}
@@ -120,7 +117,6 @@ export function AppHeader() {
             </button>
           </div>
 
-          {/* Light / Dark / System switcher */}
           <button
             type="button"
             onClick={cycleTheme}

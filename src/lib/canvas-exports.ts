@@ -98,18 +98,15 @@ export async function renderMatchRecapCardPng(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('canvas_unavailable');
 
-  // Background
   ctx.fillStyle = '#09090B';
   ctx.fillRect(0, 0, width, height);
 
-  // Subtle top glow
   const glow = ctx.createRadialGradient(540, 120, 40, 540, 120, 640);
   glow.addColorStop(0, 'rgba(180, 240, 0, 0.14)');
   glow.addColorStop(1, 'rgba(9, 9, 11, 0)');
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, width, 640);
 
-  // Outer card frame
   drawRoundedRect(ctx, 40, 40, width - 80, height - 80, 36);
   ctx.fillStyle = '#141417';
   ctx.fill();
@@ -117,12 +114,10 @@ export async function renderMatchRecapCardPng(
   ctx.strokeStyle = '#27272A';
   ctx.stroke();
 
-  // Top Volt Bar
   drawRoundedRect(ctx, 40, 40, width - 80, 10, 5);
   ctx.fillStyle = '#B4F000';
   ctx.fill();
 
-  // Brand + Badges
   drawMatchMateBrand(ctx, 84, 86);
 
   const badgeText = `#${input.shortCode}`;
@@ -143,7 +138,6 @@ export async function renderMatchRecapCardPng(
   ctx.fillStyle = '#B4F000';
   ctx.fillText(sportText, width - 84 - badgeW - 14 - sportW + 17, 119);
 
-  // Recap Header
   ctx.font = '800 20px system-ui, sans-serif';
   ctx.fillStyle = '#B4F000';
   ctx.fillText('TỔNG KẾT BUỔI ĐẤU · MATCH RECAP', 84, 194);
@@ -160,7 +154,6 @@ export async function renderMatchRecapCardPng(
     294
   );
 
-  // MVP Spotlight Box
   drawRoundedRect(ctx, 84, 332, 912, 162, 24);
   ctx.fillStyle = '#18181B';
   ctx.fill();
@@ -186,7 +179,6 @@ export async function renderMatchRecapCardPng(
       472
     );
 
-    // Win rate pill on right
     const wrText = `${input.mvp.winRate}% WIN`;
     drawRoundedRect(ctx, 780, 374, 184, 78, 18);
     ctx.fillStyle = '#B4F000';
@@ -201,12 +193,10 @@ export async function renderMatchRecapCardPng(
     ctx.fillText('Chưa có trận đấu nào hoàn tất', 116, 434);
   }
 
-  // Leaderboard Section
   ctx.font = '800 22px system-ui, sans-serif';
   ctx.fillStyle = '#FFFFFF';
   ctx.fillText(`BẢNG XẾP HẠNG (${input.totalGames} TRẬN)`, 84, 548);
 
-  // Table Header
   drawRoundedRect(ctx, 84, 568, 912, 46, 12);
   ctx.fillStyle = '#27272A';
   ctx.fill();
@@ -253,7 +243,6 @@ export async function renderMatchRecapCardPng(
     y += 78;
   }
 
-  // Footer
   ctx.strokeStyle = '#27272A';
   ctx.lineWidth = 2;
   ctx.setLineDash([10, 8]);
@@ -300,7 +289,6 @@ export async function renderRosterPosterPng(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('canvas_unavailable');
 
-  // Background
   ctx.fillStyle = '#09090B';
   ctx.fillRect(0, 0, width, height);
 
@@ -310,7 +298,6 @@ export async function renderRosterPosterPng(
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, width, 640);
 
-  // Outer card
   drawRoundedRect(ctx, 40, 40, width - 80, height - 80, 36);
   ctx.fillStyle = '#141417';
   ctx.fill();
@@ -318,14 +305,12 @@ export async function renderRosterPosterPng(
   ctx.strokeStyle = '#27272A';
   ctx.stroke();
 
-  // Top Volt Accent
   drawRoundedRect(ctx, 40, 40, width - 80, 10, 5);
   ctx.fillStyle = '#B4F000';
   ctx.fill();
 
   drawMatchMateBrand(ctx, 84, 84);
 
-  // Code pill
   const codeText = `#${input.shortCode}`;
   ctx.font = '800 22px ui-monospace, monospace';
   const codeW = ctx.measureText(codeText).width + 36;
@@ -344,7 +329,6 @@ export async function renderRosterPosterPng(
   ctx.fillStyle = '#B4F000';
   ctx.fillText(sportText, width - 84 - codeW - 14 - sportW + 17, 117);
 
-  // Title & Metadata
   ctx.font = '900 46px system-ui, sans-serif';
   ctx.fillStyle = '#FFFFFF';
   ctx.fillText(fitText(ctx, input.matchTitle.toUpperCase(), 912), 84, 206);
@@ -358,7 +342,6 @@ export async function renderRosterPosterPng(
     : `📍 ${input.locationName}`;
   ctx.fillText(fitText(ctx, locLine, 912), 84, 294);
 
-  // Meta Chips
   const metaParts = [
     input.feeText,
     `Chỗ: ${input.slotsTaken}/${input.maxSlots}`,
@@ -376,7 +359,6 @@ export async function renderRosterPosterPng(
     chipX += w + 12;
   }
 
-  // Progress bar
   const pct =
     input.maxSlots > 0
       ? Math.min(1, Math.max(0, input.slotsTaken / input.maxSlots))
@@ -390,7 +372,6 @@ export async function renderRosterPosterPng(
     ctx.fill();
   }
 
-  // Roster Title
   ctx.font = '800 22px system-ui, sans-serif';
   ctx.fillStyle = '#FFFFFF';
   ctx.fillText(
@@ -399,7 +380,6 @@ export async function renderRosterPosterPng(
     448
   );
 
-  // 2-column Roster Grid (up to 14 rows visible cleanly)
   const expandedRoster = expandRosterForPoster(input.roster);
   const visibleRoster = expandedRoster.slice(0, 14);
   const colWidth = 444;
@@ -445,7 +425,6 @@ export async function renderRosterPosterPng(
     );
   }
 
-  // Perforated divider
   ctx.strokeStyle = '#27272A';
   ctx.lineWidth = 2;
   ctx.setLineDash([10, 8]);
@@ -455,7 +434,6 @@ export async function renderRosterPosterPng(
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Bottom QR & CTA Strip
   const qrDataUrl = await QRCode.toDataURL(input.bookingUrl, {
     width: 240,
     margin: 1,

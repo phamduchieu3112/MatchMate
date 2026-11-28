@@ -194,7 +194,6 @@ export async function POST(
     return NextResponse.json({ error: 'match_not_found' }, { status: 404 });
   }
 
-  // Persist finalized costs on match
   const { error: matchUpdErr } = await auth.supabase
     .from('matches')
     .update({
@@ -260,7 +259,6 @@ export async function POST(
     ).map((r) => [r.id, r.slot_genders ?? null])
   );
 
-  // Persist any host-adjusted per-slot genders
   if (rawGendersMap) {
     await Promise.all(
       regs.map(async (r) => {
