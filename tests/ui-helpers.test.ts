@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   expandRosterForPoster,
+  getPerSlotPersonLabels,
   sanitizeIntegerInput,
   splitParticipantNames,
 } from '@/lib/ui-helpers';
@@ -102,5 +103,24 @@ describe('sanitizeIntegerInput', () => {
 
   it('clamps values to the configured maximum', () => {
     expect(sanitizeIntegerInput('150', 99)).toEqual({ text: '99', value: 99 });
+  });
+});
+
+describe('getPerSlotPersonLabels', () => {
+  it('returns one individual person name per slot for group bookings', () => {
+    expect(
+      getPerSlotPersonLabels('Ngô Thế Phong, Nguyễn Nhật Linh Ngọc', 2)
+    ).toEqual(['Ngô Thế Phong', 'Nguyễn Nhật Linh Ngọc']);
+    expect(getPerSlotPersonLabels('Bách, Vợ Bách', 2)).toEqual([
+      'Bách',
+      'Vợ Bách',
+    ]);
+  });
+
+  it('numbers slots when a multi-slot booking only has a single name', () => {
+    expect(getPerSlotPersonLabels('Phạm Đức Hiếu', 2)).toEqual([
+      'Phạm Đức Hiếu (Slot 1)',
+      'Phạm Đức Hiếu (Slot 2)',
+    ]);
   });
 });

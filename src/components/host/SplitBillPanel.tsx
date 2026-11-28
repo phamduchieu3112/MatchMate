@@ -9,7 +9,7 @@ import {
   calculateSplitBill,
   normalizeSlotGenders,
 } from '@/lib/split-bill';
-import { splitParticipantNames } from '@/lib/ui-helpers';
+import { getPerSlotPersonLabels } from '@/lib/ui-helpers';
 import type {
   ClubWalletSummary,
   MatchSettlementRow,
@@ -33,6 +33,7 @@ interface SplitBillPanelProps {
     status: string;
   }>;
   onUpdated: () => void;
+  onRegistrationPatched?: (regId: string, nextGenders: SlotGender[]) => void;
 }
 
 const SURCHARGE_PRESETS = [0, 20, 30, 50] as const;
@@ -92,6 +93,7 @@ export function SplitBillPanel({
   initialMaleSurchargePercent = 0,
   registrations,
   onUpdated,
+  onRegistrationPatched,
 }: SplitBillPanelProps) {
   const { locale, t } = useLocale();
   const [courtFee, setCourtFee] = useState(initialCourtFee);
@@ -118,18 +120,11 @@ export function SplitBillPanel({
   });
 
   useEffect(() => {
-    setSlotGendersByReg((prev) => {
-      const next: Record<string, SlotGender[]> = {};
-      for (const r of registrations) {
-        const existing = prev[r.id];
-        if (existing && existing.length === r.slots) {
-          next[r.id] = existing;
-        } else {
-          next[r.id] = normalizeSlotGenders(r.slot_genders, r.slots);
-        }
-      }
-      return next;
-    });
+    const next: Record<string, SlotGender[]> = {};
+    for (const r of registrations) {
+      next[r.id] = normalizeSlotGenders(r.slot_genders, r.slots);
+    }
+    setSlotGendersByReg(next);
   }, [registrations]);
 
   const [settlements, setSettlements] = useState<MatchSettlementRow[]>([]);
@@ -183,14 +178,70 @@ export function SplitBillPanel({
     [registrations]
   );
 
-  const toggleRegSlotGender = (regId: string, slotIdx: number, slots: number) => {
-    setSlotGendersByReg((prev) => {
-      const current = normalizeSlotGenders(prev[regId], slots);
-      const next = [...current];
-      next[slotIdx] = next[slotIdx] === 'female' ? 'male' : 'female';
-      return { ...prev, [regId]: next };
-    });
+  const toggleRegSlotGender = async (
+    regId: string,
+    slotIdx: number,
+    slots: number
+  ) => {
+    const prevGenders = normalizeSlotGenders(
+      slotGendersByReg[regId] ??
+        registrations.find((r) => r.id === regId)?.slot_genders,
+      slots
+    );
+    const nextGenders: SlotGender[] = [...prevGenders];
+    nextGenders[slotIdx] = nextGenders[slotIdx] === 'female' ? 'male' : 'female';
+
+    setSlotGendersByReg((prev) => ({ ...prev, [regId]: nextGenders }));
+    onRegistrationPatched?.(regId, nextGenders);
+
+    try {
+      const res = await fetch(
+        `/api/host/matches/${matchId}/registrations/${regId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slot_genders: nextGenders }),
+        }
+      );
+      if (!res.ok) {
+        setSlotGendersByReg((prev) => ({ ...prev, [regId]: prevGenders }));
+        onRegistrationPatched?.(regId, prevGenders);
+        setError(t('errGeneric'));
+      }
+    } catch {
+      setSlotGendersByReg((prev) => ({ ...prev, [regId]: prevGenders }));
+      onRegistrationPatched?.(regId, prevGenders);
+      setError(t('errGeneric'));
+    }
   };
+
+  const individualPersonSlots = useMemo(() => {
+    const list: Array<{
+      regId: string;
+      slots: number;
+      slotIdx: number;
+      personLabel: string;
+      gender: SlotGender;
+    }> = [];
+
+    for (const reg of confirmedRegistrations) {
+      const genders = normalizeSlotGenders(
+        slotGendersByReg[reg.id] ?? reg.slot_genders,
+        reg.slots
+      );
+      const labels = getPerSlotPersonLabels(reg.display_name, reg.slots);
+      for (let sIdx = 0; sIdx < reg.slots; sIdx += 1) {
+        list.push({
+          regId: reg.id,
+          slots: reg.slots,
+          slotIdx: sIdx,
+          personLabel: labels[sIdx] ?? `${reg.display_name} (Slot ${sIdx + 1})`,
+          gender: genders[sIdx] ?? 'male',
+        });
+      }
+    }
+    return list;
+  }, [confirmedRegistrations, slotGendersByReg]);
 
   const livePreview = useMemo(
     () =>
@@ -431,8 +482,8 @@ export function SplitBillPanel({
             })}
           </div>
 
-          {/* Host Per-Slot Gender Quick Toggles */}
-          {confirmedRegistrations.length > 0 && (
+          {/* Host Per-Person Gender Quick Toggles (1 row per person/slot) */}
+          {individualPersonSlots.length > 0 && (
             <div className="border-t border-zinc-200/80 pt-2.5 dark:border-zinc-800">
               <p className="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                 {t('hostPlayerGenderAdjustTitle')} ({livePreview.totalMaleSlots}{' '}
@@ -440,49 +491,34 @@ export function SplitBillPanel({
                 {t('genderFemale')})
               </p>
               <div className="grid gap-1.5 sm:grid-cols-2">
-                {confirmedRegistrations.map((reg) => {
-                  const genders = normalizeSlotGenders(
-                    slotGendersByReg[reg.id] ?? reg.slot_genders,
-                    reg.slots
-                  );
-                  const names = splitParticipantNames(reg.display_name);
-
+                {individualPersonSlots.map((item) => {
+                  const isFemale = item.gender === 'female';
                   return (
                     <div
-                      key={reg.id}
-                      className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-2.5 py-1.5 text-xs dark:border-zinc-800 dark:bg-zinc-900"
+                      key={`${item.regId}-${item.slotIdx}`}
+                      className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-800 dark:bg-zinc-900"
                     >
-                      <span className="min-w-0 flex-1 truncate font-bold text-zinc-900 dark:text-zinc-100">
-                        {reg.display_name}
+                      <span className="min-w-0 flex-1 whitespace-normal break-words font-bold leading-snug text-zinc-900 dark:text-zinc-100">
+                        {item.personLabel}
                       </span>
-                      <div className="flex shrink-0 flex-wrap items-center gap-1">
-                        {genders.map((g, sIdx) => {
-                          const isFemale = g === 'female';
-                          const personLabel =
-                            reg.slots > 1
-                              ? names[sIdx]
-                                ? `${names[sIdx].split(' ').slice(-1)[0]}: `
-                                : `#${sIdx + 1}: `
-                              : '';
-                          return (
-                            <button
-                              key={sIdx}
-                              type="button"
-                              onClick={() =>
-                                toggleRegSlotGender(reg.id, sIdx, reg.slots)
-                              }
-                              className={`rounded-lg px-2 py-0.5 text-[11px] font-extrabold transition ${
-                                isFemale
-                                  ? 'bg-rose-500/15 text-rose-700 dark:bg-rose-400/20 dark:text-rose-300'
-                                  : 'bg-sky-500/15 text-sky-700 dark:bg-sky-400/20 dark:text-sky-300'
-                              }`}
-                            >
-                              {personLabel}
-                              {isFemale ? t('genderFemale') : t('genderMale')}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void toggleRegSlotGender(
+                            item.regId,
+                            item.slotIdx,
+                            item.slots
+                          )
+                        }
+                        aria-pressed={isFemale}
+                        className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[11px] font-extrabold transition ${
+                          isFemale
+                            ? 'bg-rose-500/15 text-rose-700 hover:bg-rose-500/25 dark:bg-rose-400/20 dark:text-rose-300'
+                            : 'bg-sky-500/15 text-sky-700 hover:bg-sky-500/25 dark:bg-sky-400/20 dark:text-sky-300'
+                        }`}
+                      >
+                        {isFemale ? t('genderFemale') : t('genderMale')}
+                      </button>
                     </div>
                   );
                 })}

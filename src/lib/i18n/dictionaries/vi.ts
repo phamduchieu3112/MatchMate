@@ -510,6 +510,13 @@ export const vi = {
   hostDiffExact: 'Đủ 0đ',
   hostSplitPerSlotMale: 'Thực tế mỗi slot Nam ({count} slot)',
   hostSplitPerSlotFemale: 'Thực tế mỗi slot Nữ ({count} slot)',
+  hostEditRegBtn: 'Sửa',
+  hostEditRegTitle: 'Chỉnh sửa thông tin người đăng ký',
+  hostEditRegNameHint: 'Nếu đặt nhiều slot cho nhóm, ngăn cách tên từng người bằng dấu phẩy (,)',
+  hostEditRegStatusLabel: 'Trạng thái vé',
+  hostEditRegPaidLabel: 'Số tiền đã đóng (VND)',
+  hostEditRegSetFullPaid: 'Đặt bằng mức cần đóng',
+  hostEditRegSaveBtn: 'Lưu thông tin',
 } as const;
 
 export type Dictionary = { [K in keyof typeof vi]: string };

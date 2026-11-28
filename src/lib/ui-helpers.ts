@@ -110,3 +110,40 @@ export function sanitizeIntegerInput(
   const clamped = Math.min(max, Math.max(0, parsed));
   return { text: String(clamped), value: clamped };
 }
+
+/**
+ * Produces one human-readable person label per slot for a registration.
+ * - Multi-name group booking ("Bách, Vợ Bách", slots=2) => ["Bách", "Vợ Bách"]
+ * - Single-name multi-slot booking ("Hiếu", slots=2) => ["Hiếu (Slot 1)", "Hiếu (Slot 2)"]
+ * - Single-slot booking ("Hiếu", slots=1) => ["Hiếu"]
+ */
+export function getPerSlotPersonLabels(
+  displayName: string,
+  slots: number
+): string[] {
+  const count = Math.max(1, Math.trunc(slots || 1));
+  const names = splitParticipantNames(displayName);
+  const fallback = displayName.trim() || '—';
+
+  if (count === 1) {
+    return [names.length > 0 ? names.join(', ') : fallback];
+  }
+
+  if (names.length >= count) {
+    return Array.from({ length: count }, (_, idx) =>
+      idx < count - 1 ? names[idx] : names.slice(count - 1).join(', ')
+    );
+  }
+
+  const baseName = names[0] ?? fallback;
+  if (names.length <= 1) {
+    return Array.from(
+      { length: count },
+      (_, idx) => `${baseName} (Slot ${idx + 1})`
+    );
+  }
+
+  return Array.from({ length: count }, (_, idx) =>
+    idx < names.length ? names[idx] : `${baseName} (Slot ${idx + 1})`
+  );
+}

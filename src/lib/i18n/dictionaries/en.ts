@@ -512,4 +512,11 @@ export const en: Dictionary = {
   hostDiffExact: 'Exact 0đ',
   hostSplitPerSlotMale: 'Actual per Male slot ({count} slots)',
   hostSplitPerSlotFemale: 'Actual per Female slot ({count} slots)',
+  hostEditRegBtn: 'Edit',
+  hostEditRegTitle: 'Edit Registration Details',
+  hostEditRegNameHint: 'For multi-slot group bookings, separate player names with commas (,)',
+  hostEditRegStatusLabel: 'Booking Status',
+  hostEditRegPaidLabel: 'Amount Paid (VND)',
+  hostEditRegSetFullPaid: 'Set to full amount due',
+  hostEditRegSaveBtn: 'Save Changes',
 };
