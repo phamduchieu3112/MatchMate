@@ -36,7 +36,7 @@ interface SplitBillPanelProps {
   onRegistrationPatched?: (regId: string, nextGenders: SlotGender[]) => void;
 }
 
-const SURCHARGE_PRESETS = [0, 20, 30, 50] as const;
+const SURCHARGE_PRESETS = [0, 10, 20, 30, 40, 50] as const;
 
 function FormattedVndInput({
   value,
